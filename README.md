@@ -1,45 +1,45 @@
 # ToClash
 
-Convert proxy links to Clash / Mihomo configs directly in your browser.
+在浏览器本地将代理链接转换为 Clash / Mihomo 配置。
 
-ToClash is a privacy-first, static single-page application. Paste one proxy URI per line and receive stable, importable Mihomo YAML. A malformed link does not stop the rest of a batch.
+ToClash 是一个隐私优先的纯前端单页工具。每行粘贴一个代理 URI，即可获得稳定、可导入的 Mihomo YAML；某一条链接损坏不会影响批次中的其他链接。
 
-**Live site:** <https://forcemind.github.io/ToClash/>
+> 所有转换均在浏览器本地完成。ToClash 永远不会上传你的代理链接。
 
-> All conversion happens locally in your browser. Your proxy links are never uploaded by ToClash.
+**在线使用：** <https://forcemind.github.io/ToClash/>
 
-## Features
+## 功能
 
-- VLESS, VMess, Trojan, Shadowsocks (SIP002), SOCKS5, HTTP, and HTTPS input
-- TLS, WebSocket, gRPC, HTTP/H2, Reality, and VLESS XHTTP mapping
-- Full minimal Mihomo config or `proxies:`-only output
-- Unicode names, IPv4/IPv6, duplicate-name handling, batch errors and warnings
-- Local copy and download; no backend, analytics, persistence, or conversion API
-- Responsive light/dark interface
+- 支持 VLESS、VMess、Trojan、Shadowsocks、SOCKS5、HTTP 和 HTTPS
+- 支持 TLS、WebSocket、gRPC、HTTP/H2、Reality 和 VLESS XHTTP
+- 输出完整的最简 Mihomo 配置，或仅输出 `proxies:`
+- 支持 Unicode 名称、IPv4/IPv6、节点重名处理、批量错误与警告
+- 本地复制和 YAML 下载；无后端、无统计、无持久化、无转换 API
+- 简体中文默认界面，可切换 English；响应式明暗主题
 
-## Supported protocols
+## 支持范围
 
-| Input | Important support |
+| 输入 | 主要支持 |
 | --- | --- |
-| VLESS | TLS, Reality, WS, gRPC, HTTP/H2, XHTTP, flow, ALPN, fingerprint |
-| VMess | Base64 JSON, TLS, WS, gRPC, HTTP/H2 |
-| Trojan | TLS, WS, gRPC, HTTP/H2 |
-| Shadowsocks | SIP002 and legacy Base64, common plugin metadata |
-| SOCKS / SOCKS5 | Authentication, TLS flags |
-| HTTP / HTTPS | Authentication, SNI, certificate verification flag |
+| VLESS | TLS、Reality、WS、gRPC、HTTP/H2、XHTTP、flow、ALPN、fingerprint |
+| VMess | Base64 JSON、TLS、WS、gRPC、HTTP/H2 |
+| Trojan | TLS、WS、gRPC、HTTP/H2 |
+| Shadowsocks | SIP002、legacy Base64、常用插件元数据 |
+| SOCKS / SOCKS5 | 用户名密码、TLS 参数 |
+| HTTP / HTTPS | 用户名密码、SNI、证书校验参数 |
 
-Unknown URI parameters are reported as warnings when they cannot be safely mapped. ToClash targets current Mihomo / Clash.Meta syntax.
+无法安全映射到 Mihomo 的 URI 参数会显示警告，不会静默丢弃。
 
-## Development
+## 本地开发
 
-Requires Node.js 20 or newer.
+需要 Node.js 20 或更高版本。
 
 ```bash
 npm install
 npm run dev
 ```
 
-Quality commands:
+质量检查：
 
 ```bash
 npm run lint
@@ -49,49 +49,44 @@ npm run test:coverage
 npm run build
 ```
 
-The production build is written to `dist/`.
+生产构建输出到 `dist/`。
 
-## Deployment
-
-This project is a static Vite application and needs no server or database.
-
-### Cloudflare Pages
-
-- Framework preset: Vite (or None)
-- Build command: `npm run build`
-- Build output directory: `dist`
-- Environment variable: `NODE_VERSION=20`
-
-No SPA redirect is needed because v0.1.0 has only the root page.
+## 部署
 
 ### GitHub Pages
 
-The repository includes `.github/workflows/deploy-pages.yml`. Every push to `main` builds and publishes `dist/` using the official GitHub Pages artifact flow. In the repository settings, select **GitHub Actions** as the Pages source. The expected project URL is:
+仓库包含 `.github/workflows/deploy-pages.yml`。推送到 `main` 后会自动构建并发布 `dist/`。仓库 Pages 的 Source 必须选择 **GitHub Actions**。
 
 ```text
 https://forcemind.github.io/ToClash/
 ```
 
-Vite uses relative asset paths, so the same build works under the `/ToClash/` project path and at a custom-domain root.
+### Cloudflare Pages
 
-## Architecture
+```text
+Build command: npm run build
+Build output directory: dist
+Environment variable: NODE_VERSION=20
+```
 
-Protocol parsers produce a normalized `ProxyNode`; they never generate YAML. The Mihomo transformer validates and maps normalized nodes to ordered configuration objects, and the serializer handles YAML output. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Vite 使用相对资源路径，因此同一构建可部署到 GitHub Pages 的 `/ToClash/` 子路径或自定义域名根路径。v0.1.0 只有根页面，不需要 `_redirects`。
 
-## Privacy and security
+## 架构
 
-Input exists in React component memory only. It is not put in URLs or local storage and is not logged. Clipboard and file download actions happen only after user interaction. Do not include real credentials in bug reports; see [SECURITY.md](SECURITY.md).
+协议 parser 只生成统一的 `ProxyNode`，不会直接生成 YAML。Mihomo transformer 负责校验和稳定字段映射，serializer 只负责 YAML 编码。详见[架构文档](docs/ARCHITECTURE.md)。
 
-For a concise data-handling statement, see [PRIVACY.md](PRIVACY.md).
+## 隐私与安全
 
-## Contributing
+输入仅存在于 React 组件内存中，不写入 URL、LocalStorage 或日志。剪贴板和文件下载仅由用户主动触发。请勿在 Issue 中提交真实节点或凭据，详见[隐私声明](PRIVACY.md)和[安全政策](SECURITY.md)。
 
-Bug fixes, tests, documentation, and carefully scoped protocol compatibility improvements are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+## 项目范围
 
-## Scope
+ToClash 是格式转换器，不是 VPN 客户端、代理服务器、订阅服务、测速工具、账户系统或节点市场。
 
-ToClash is a converter, not a VPN client, proxy server, subscription service, latency tester, account system, or node marketplace.
+## 贡献与许可
 
-## License
+欢迎提交测试、文档、错误修复和范围明确的协议兼容改进，参见[贡献指南](CONTRIBUTING.md)。本项目依据 Apache License 2.0 授权，详见 [LICENSE](LICENSE)。
 
-Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
+---
+
+English summary: ToClash converts common proxy URIs to Mihomo / Clash YAML entirely in your browser. No input is uploaded or persisted. The interface defaults to Simplified Chinese and can switch to English.

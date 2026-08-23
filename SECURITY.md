@@ -1,9 +1,9 @@
-# Security Policy
+# 安全政策
 
-ToClash processes links locally in browser memory and does not intentionally upload, log, or persist proxy input.
+ToClash 默认只在浏览器内存中处理代理链接，不会主动上传、记录或持久化输入。
 
-## Reporting a vulnerability
+## 报告安全问题
 
-Do not post real nodes, UUIDs, passwords, tokens, subscription URLs, or private server addresses in a public issue. Use the repository owner's private security-reporting channel (such as GitHub private vulnerability reporting) and provide a redacted reproduction.
+请勿在公开 Issue 中发布真实节点、UUID、密码、Token、订阅地址或私人服务器地址。请使用仓库所有者提供的私密报告渠道，例如 GitHub Private Vulnerability Reporting，并仅提交脱敏后的复现信息。
 
-If you accidentally disclose credentials publicly, revoke or rotate them immediately. Treat downloaded YAML and clipboard contents as sensitive.
+如果凭据被意外公开，请立即撤销或轮换。剪贴板内容和下载的 YAML 文件同样应视为敏感数据。

@@ -1,8 +1,17 @@
-# Changelog
+# 变更日志
 
-All notable changes to ToClash are documented here.
+这里记录 ToClash 的重要变更。
 
-## 0.1.0 — 2026-08-22
+## 0.1.0 — 2026-08-23
+
+- 新增 VLESS、VMess、Trojan、Shadowsocks、SOCKS5、HTTP 和 HTTPS 本地批量转换。
+- 新增 TLS、WebSocket、gRPC、HTTP/H2、Reality 和 VLESS XHTTP 映射。
+- 新增完整 Mihomo 配置与仅 `proxies:` 两种输出模式。
+- 新增逐行错误、警告、Unicode 名称、IPv6 和重名处理。
+- 新增复制、YAML 下载、示例、响应式布局、明暗主题以及默认简体中文/英文切换。
+- 新增单元测试、覆盖率、严格 TypeScript、CI、GitHub Pages、Cloudflare Pages 和项目文档。
+
+### English
 
 - Added local batch conversion for VLESS, VMess, Trojan, Shadowsocks, SOCKS5, HTTP, and HTTPS links.
 - Added TLS, WebSocket, gRPC, HTTP/H2, Reality, and VLESS XHTTP mappings.
