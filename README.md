@@ -12,7 +12,7 @@ ToClash 是一个隐私优先的纯前端单页工具。每行粘贴一个代理
 
 - 支持 VLESS、VMess、Trojan、Shadowsocks、SOCKS5、HTTP 和 HTTPS
 - 支持 TLS、WebSocket、gRPC、HTTP/H2、Reality 和 VLESS XHTTP
-- 输出完整的最简 Mihomo 配置，或仅输出 `proxies:`
+- 输出包含策略组、fake-ip DNS 和常用分流规则的完整 Mihomo 配置，或仅输出 `proxies:`
 - 支持 Unicode 名称、IPv4/IPv6、节点重名处理、批量错误与警告
 - 本地复制和 YAML 下载；无后端、无统计、无持久化、无转换 API
 - 简体中文默认界面，可切换 English；响应式明暗主题
@@ -29,6 +29,8 @@ ToClash 是一个隐私优先的纯前端单页工具。每行粘贴一个代理
 | HTTP / HTTPS | 用户名密码、SNI、证书校验参数 |
 
 无法安全映射到 Mihomo 的 URI 参数会显示警告，不会静默丢弃。
+
+完整配置默认包含 `PROXY` 手动选择组、`AUTO` 自动测速组、局域网直连、常用国际服务代理、`GEOSITE/CN` 与 `GEOIP/CN` 直连以及 `MATCH,PROXY` 兜底。规则从上到下匹配，首条命中即停止。
 
 ## 本地开发
 

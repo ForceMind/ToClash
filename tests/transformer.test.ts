@@ -1,3 +1,4 @@
+import { parse } from 'yaml'
 import { describe, expect, it } from 'vitest'
 import { parseLink } from '../src/core/parser'
 import { serializeMihomo } from '../src/core/serializer/yaml'
@@ -11,11 +12,16 @@ describe('Mihomo output', () => {
     expect(Object.keys(proxy).slice(0, 5)).toEqual(['name', 'type', 'server', 'port', 'uuid'])
     expect(proxy).toMatchObject({ tls: true, 'client-fingerprint': 'chrome', 'reality-opts': { 'public-key': 'key', 'short-id': 'id' }, 'ws-opts': { path: '/ws', headers: { Host: 'cdn.example' } } })
   })
-  it('builds valid full groups with existing node references', () => {
+  it('builds full policy groups, DNS and ordered routing rules', () => {
     const node = parseLink(`vless://${uuid}@example.com:443#Only`).node
     const config = buildMihomoConfig([node], true)
-    expect(config['proxy-groups']).toEqual([{ name: 'Proxy', type: 'select', proxies: ['Auto', 'DIRECT', 'Only'] }, { name: 'Auto', type: 'url-test', proxies: ['Only'], url: 'https://www.gstatic.com/generate_204', interval: 300 }])
+    expect(config['proxy-groups']).toEqual([{ name: 'PROXY', type: 'select', proxies: ['AUTO', 'DIRECT', 'Only'] }, { name: 'AUTO', type: 'url-test', proxies: ['Only'], url: 'https://www.gstatic.com/generate_204', interval: 300 }])
+    expect(config.dns).toMatchObject({ enable: true, 'enhanced-mode': 'fake-ip', 'nameserver-policy': { 'geosite:geolocation-!cn': ['https://1.1.1.1/dns-query#PROXY', 'https://8.8.8.8/dns-query#PROXY'] } })
+    expect(config.rules).toEqual(expect.arrayContaining(['IP-CIDR,192.168.0.0/16,DIRECT,no-resolve', 'DOMAIN-SUFFIX,openai.com,PROXY', 'GEOSITE,CN,DIRECT', 'GEOIP,CN,DIRECT', 'MATCH,PROXY']))
     expect(serializeMihomo([node], 'proxies')).toContain('proxies:\n  - name: Only')
+    const yaml = serializeMihomo([node], 'full')
+    expect(yaml).toContain('# DNS：国内解析直连，国外域名通过 PROXY 组解析')
+    expect(parse(yaml).rules.at(-1)).toBe('MATCH,PROXY')
   })
   it('validates required schema fields', () => expect(() => validateNode({ name: 'x', type: 'vless', server: 'x', port: 443 })).toThrow('UUID'))
 })
