@@ -76,6 +76,25 @@ Environment variable: NODE_VERSION=20
 
 Vite 使用相对资源路径，因此同一构建可部署到 GitHub Pages 的 `/ToClash/` 子路径或自定义域名根路径。v0.1.0 只有根页面，不需要 `_redirects`。
 
+#### Cloudflare Direct Upload
+
+Cloudflare Direct Upload 只能上传预先构建的静态资源，不能上传项目源码包。先运行：
+
+```bash
+npm ci
+npm run build
+```
+
+然后在控制台拖入 `dist/` 文件夹，或把 **`dist/` 里面的内容**压缩为 ZIP 后上传。ZIP 根目录必须直接包含：
+
+```text
+index.html
+favicon.svg
+assets/
+```
+
+不要上传 `ToClash-v0.1.0-source.zip`；它用于开发，根目录的源码 `index.html` 会引用 `/src/main.tsx`，无法由 Direct Upload 自动编译。发布包使用 `ToClash-v0.1.0-pages.zip`。
+
 ## 架构
 
 协议 parser 只生成统一的 `ProxyNode`，不会直接生成 YAML。Mihomo transformer 负责校验和稳定字段映射，serializer 只负责 YAML 编码。详见[架构文档](docs/ARCHITECTURE.md)。
