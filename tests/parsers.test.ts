@@ -18,6 +18,14 @@ describe('VLESS', () => {
     expect(parseLink(`vless://${uuid}@example.com:443?type=h2`).node.network).toBe('h2')
     expect(parseLink(`vless://${uuid}@example.com:443?type=xhttp&path=%2Fx&host=x.example&mode=packet-up`).node.xhttp).toEqual({ path: '/x', host: 'x.example', mode: 'packet-up' })
   })
+  it('maps XHTTP padding from explicit and extra URI forms without duplicate warnings', () => {
+    const explicit = parseLink(`vless://${uuid}@example.com:443?type=xhttp&x_padding_bytes=100-1000&extra=%7B%22xPaddingBytes%22%3A%22200-2000%22%7D`)
+    expect(explicit.node.xhttp?.xPaddingBytes).toBe('100-1000')
+    expect(explicit.warnings).toEqual([])
+    const extra = parseLink(`vless://${uuid}@example.com:443?type=xhttp&extra=%7B%22xPaddingBytes%22%3A%22100-1000%22%7D`)
+    expect(extra.node.xhttp?.xPaddingBytes).toBe('100-1000')
+    expect(extra.warnings).toEqual([])
+  })
   it('warns for ignored parameters and rejects invalid values', () => {
     expect(parseLink(`vless://${uuid}@example.com:443?spx=%2F`).warnings[0]?.code).toBe('IGNORED_PARAMETER')
     expect(() => parseLink('vless://bad@example.com:443')).toThrow('UUID')

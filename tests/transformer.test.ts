@@ -12,6 +12,10 @@ describe('Mihomo output', () => {
     expect(Object.keys(proxy).slice(0, 5)).toEqual(['name', 'type', 'server', 'port', 'uuid'])
     expect(proxy).toMatchObject({ tls: true, 'client-fingerprint': 'chrome', 'reality-opts': { 'public-key': 'key', 'short-id': 'id' }, 'ws-opts': { path: '/ws', headers: { Host: 'cdn.example' } } })
   })
+  it('emits the official XHTTP padding field', () => {
+    const proxy = toMihomoProxy(parseLink(`vless://${uuid}@example.com:443?type=xhttp&x_padding_bytes=100-1000`).node)
+    expect(proxy['xhttp-opts']).toEqual({ 'x-padding-bytes': '100-1000' })
+  })
   it('builds full policy groups, DNS and ordered routing rules', () => {
     const node = parseLink(`vless://${uuid}@example.com:443#Only`).node
     const config = buildMihomoConfig([node], true)

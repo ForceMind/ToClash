@@ -15,6 +15,7 @@ describe('界面语言', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Switch to English' }))
     expect(screen.getByRole('heading', { name: 'Proxy links → Clash YAML' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Convert' })).toBeTruthy()
+    expect(screen.queryByText('GitHub')).toBeNull()
   })
 
   it('中文警告保留被忽略的参数名称', () => {

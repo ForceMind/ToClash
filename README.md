@@ -31,6 +31,8 @@ ToClash 是一个隐私优先的纯前端单页工具。每行粘贴一个代理
 
 无法安全映射到 Mihomo 的 URI 参数会显示警告，不会静默丢弃。
 
+XHTTP 支持 URI 中的 `x_padding_bytes` / `x-padding-bytes`，以及 `extra` JSON 内的 `xPaddingBytes`，统一输出为 Mihomo `xhttp-opts.x-padding-bytes`。显式参数与 `extra` 重复时以显式参数为准。
+
 完整配置默认包含 `PROXY` 手动选择组、`AUTO` 自动测速组、局域网直连、常用国际服务代理、`GEOSITE/CN` 与 `GEOIP/CN` 直连以及 `MATCH,PROXY` 兜底。规则从上到下匹配，首条命中即停止。
 
 展开“自定义网站分流”后，可每行填写一个域名或完整网址。“始终直连”规则优先级最高；同一域名同时出现在两组时会按直连处理。自定义内容只存在于当前页面内存。

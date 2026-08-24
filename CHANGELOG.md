@@ -13,6 +13,7 @@
 - 完整配置新增 PROXY/AUTO 策略组、fake-ip DNS、局域网与国内直连、国际服务代理规则。
 - 中文警告现在会显示被忽略的具体参数名。
 - 新增用户自定义“始终直连/始终代理”网站的引导流程、输入校验和冲突优先级。
+- 支持 XHTTP `x_padding_bytes` 及 `extra.xPaddingBytes` 映射，并移除公共页面的 GitHub 链接。
 
 ### English
 

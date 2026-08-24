@@ -4,7 +4,7 @@ import { parseBoolean } from '../utils/boolean'
 import { splitList } from '../utils/uri'
 
 const transports = new Set<NetworkType>(['tcp', 'ws', 'grpc', 'http', 'h2', 'xhttp'])
-const handled = new Set(['encryption', 'security', 'type', 'net', 'path', 'host', 'sni', 'servername', 'alpn', 'fp', 'fingerprint', 'flow', 'serviceName', 'service-name', 'pbk', 'public-key', 'sid', 'short-id', 'spx', 'spiderX', 'packetEncoding', 'packet-encoding', 'allowInsecure', 'allow-insecure', 'skip-cert-verify', 'mode', 'headerType', 'authority'])
+const handled = new Set(['encryption', 'security', 'type', 'net', 'path', 'host', 'sni', 'servername', 'alpn', 'fp', 'fingerprint', 'flow', 'serviceName', 'service-name', 'pbk', 'public-key', 'sid', 'short-id', 'spx', 'spiderX', 'packetEncoding', 'packet-encoding', 'allowInsecure', 'allow-insecure', 'skip-cert-verify', 'mode', 'headerType', 'authority', 'x_padding_bytes', 'x-padding-bytes', 'extra'])
 
 export function applyCommonParams(node: ProxyNode, params: URLSearchParams, allowedTransports = transports): Omit<ConversionIssue, 'line'>[] {
   const rawNetwork = (params.get('type') || params.get('net') || 'tcp').toLowerCase()
@@ -23,7 +23,15 @@ export function applyCommonParams(node: ProxyNode, params: URLSearchParams, allo
   if (node.network === 'ws') node.ws = { ...(path ? { path } : {}), ...(host ? { host } : {}) }
   if (node.network === 'grpc') { const serviceName = params.get('serviceName') || params.get('service-name') || path; node.grpc = serviceName ? { serviceName } : {} }
   if (node.network === 'http' || node.network === 'h2') node.http = { ...(path ? { path } : {}), ...(host ? { host: host.split(',').map((x) => x.trim()) } : {}) }
-  if (node.network === 'xhttp') node.xhttp = { ...(path ? { path } : {}), ...(host ? { host } : {}), ...(params.get('mode') ? { mode: params.get('mode')! } : {}) }
+  if (node.network === 'xhttp') {
+    let extraPadding: string | undefined
+    const extra = params.get('extra')
+    if (extra) {
+      try { const parsed: unknown = JSON.parse(extra); if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) { const value = (parsed as Record<string, unknown>).xPaddingBytes; if (typeof value === 'string' && value) extraPadding = value } } catch { /* reported below */ }
+    }
+    const xPaddingBytes = params.get('x_padding_bytes') || params.get('x-padding-bytes') || extraPadding
+    node.xhttp = { ...(path ? { path } : {}), ...(host ? { host } : {}), ...(params.get('mode') ? { mode: params.get('mode')! } : {}), ...(xPaddingBytes ? { xPaddingBytes } : {}) }
+  }
   if (security === 'reality') {
     const publicKey = params.get('pbk') || params.get('public-key')
     if (!publicKey) throw new ConversionError('MISSING_FIELD', 'Reality link is missing its public key.')
@@ -33,6 +41,11 @@ export function applyCommonParams(node: ProxyNode, params: URLSearchParams, allo
   const warnings: Omit<ConversionIssue, 'line'>[] = []
   const spider = params.get('spx') || params.get('spiderX')
   if (spider) warnings.push({ code: 'IGNORED_PARAMETER', message: 'Parameter "spiderX" has no Mihomo outbound equivalent and was ignored.' })
+  const extra = params.get('extra')
+  if (extra && node.network === 'xhttp') {
+    try { const parsed: unknown = JSON.parse(extra); const keys = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? Object.keys(parsed) : []; if (!keys.length || keys.some((key) => key !== 'xPaddingBytes')) warnings.push({ code: 'IGNORED_PARAMETER', message: 'Parameter "extra" contains unsupported XHTTP options and was partially ignored.' }) }
+    catch { warnings.push({ code: 'IGNORED_PARAMETER', message: 'Parameter "extra" is not valid JSON and was ignored.' }) }
+  }
   for (const key of new Set(params.keys())) if (!handled.has(key) && key !== 'tls') warnings.push({ code: 'IGNORED_PARAMETER', message: `Parameter "${key}" is currently ignored.` })
   return warnings
 }

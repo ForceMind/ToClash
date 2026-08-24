@@ -33,7 +33,7 @@ export function toMihomoProxy(node: ProxyNode): MihomoProxy {
   if (node.ws) result['ws-opts'] = { ...(node.ws.path ? { path: node.ws.path } : {}), ...(node.ws.host ? { headers: { Host: node.ws.host } } : {}) }
   if (node.grpc) result['grpc-opts'] = node.grpc.serviceName ? { 'grpc-service-name': node.grpc.serviceName } : {}
   if (node.http) result['http-opts'] = { ...(node.http.path ? { path: [node.http.path] } : {}), ...(node.http.host ? { headers: { Host: node.http.host } } : {}) }
-  if (node.xhttp) result['xhttp-opts'] = { ...(node.xhttp.path ? { path: node.xhttp.path } : {}), ...(node.xhttp.host ? { host: node.xhttp.host } : {}), ...(node.xhttp.mode ? { mode: node.xhttp.mode } : {}) }
+  if (node.xhttp) result['xhttp-opts'] = { ...(node.xhttp.path ? { path: node.xhttp.path } : {}), ...(node.xhttp.host ? { host: node.xhttp.host } : {}), ...(node.xhttp.mode ? { mode: node.xhttp.mode } : {}), ...(node.xhttp.xPaddingBytes ? { 'x-padding-bytes': node.xhttp.xPaddingBytes } : {}) }
   if (node.plugin) { result.plugin = node.plugin.name === 'obfs-local' ? 'obfs' : node.plugin.name; result['plugin-opts'] = node.plugin.options }
   return result
 }

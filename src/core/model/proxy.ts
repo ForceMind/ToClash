@@ -4,7 +4,7 @@ export type NetworkType = 'tcp' | 'ws' | 'grpc' | 'http' | 'h2' | 'xhttp'
 export interface WsOptions { path?: string; host?: string }
 export interface GrpcOptions { serviceName?: string }
 export interface HttpOptions { path?: string; host?: string[] }
-export interface XHttpOptions { path?: string; host?: string; mode?: string }
+export interface XHttpOptions { path?: string; host?: string; mode?: string; xPaddingBytes?: string }
 export interface RealityOptions { publicKey: string; shortId?: string }
 export interface PluginOptions { name: string; options: Record<string, string | boolean> }
 
