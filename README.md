@@ -76,7 +76,7 @@ Build output directory: dist
 Environment variable: NODE_VERSION=20
 ```
 
-Vite 使用相对资源路径，因此同一构建可部署到 GitHub Pages 的 `/ToClash/` 子路径或自定义域名根路径。v0.1.0 只有根页面，不需要 `_redirects`。
+Vite 使用相对资源路径，因此同一构建可部署到 GitHub Pages 的 `/ToClash/` 子路径或自定义域名根路径。v0.2.0 只有根页面，不需要 `_redirects`。
 
 #### Cloudflare Direct Upload
 
@@ -95,7 +95,7 @@ favicon.svg
 assets/
 ```
 
-不要上传 `ToClash-v0.1.0-source.zip`；它用于开发，根目录的源码 `index.html` 会引用 `/src/main.tsx`，无法由 Direct Upload 自动编译。发布包使用 `ToClash-v0.1.0-pages.zip`。
+不要上传 `ToClash-v0.2.0-source.zip`；它用于开发，根目录的源码 `index.html` 会引用 `/src/main.tsx`，无法由 Direct Upload 自动编译。发布包使用 `ToClash-v0.2.0-pages.zip`。
 
 ## 架构
 
