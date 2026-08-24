@@ -24,4 +24,13 @@ describe('Mihomo output', () => {
     expect(parse(yaml).rules.at(-1)).toBe('MATCH,PROXY')
   })
   it('validates required schema fields', () => expect(() => validateNode({ name: 'x', type: 'vless', server: 'x', port: 443 })).toThrow('UUID'))
+  it('places custom direct rules before custom proxy rules and resolves conflicts to DIRECT', () => {
+    const node = parseLink(`vless://${uuid}@example.com:443#Only`).node
+    const config = buildMihomoConfig([node], true, { directDomains: ['bank.example'], proxyDomains: ['video.example', 'bank.example'] })
+    const rules = config.rules as string[]
+    expect(rules).toContain('DOMAIN-SUFFIX,bank.example,DIRECT')
+    expect(rules).toContain('DOMAIN-SUFFIX,video.example,PROXY')
+    expect(rules).not.toContain('DOMAIN-SUFFIX,bank.example,PROXY')
+    expect(rules.indexOf('DOMAIN-SUFFIX,bank.example,DIRECT')).toBeLessThan(rules.indexOf('DOMAIN-SUFFIX,video.example,PROXY'))
+  })
 })

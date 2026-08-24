@@ -1,6 +1,7 @@
 import { ConversionError, type ProxyNode } from '../model/proxy'
 
 export type MihomoProxy = Record<string, unknown>
+export interface CustomRouting { proxyDomains?: string[]; directDomains?: string[] }
 
 export function validateNode(node: ProxyNode): void {
   if (!node.name || !node.server) throw new ConversionError('MISSING_FIELD', 'Proxy node is missing a name or server.')
@@ -37,7 +38,7 @@ export function toMihomoProxy(node: ProxyNode): MihomoProxy {
   return result
 }
 
-export function buildMihomoConfig(nodes: ProxyNode[], full: boolean): Record<string, unknown> {
+export function buildMihomoConfig(nodes: ProxyNode[], full: boolean, routing: CustomRouting = {}): Record<string, unknown> {
   const proxies = nodes.map(toMihomoProxy)
   if (!full) return { proxies }
   const names = nodes.map(({ name }) => name)
@@ -77,6 +78,8 @@ export function buildMihomoConfig(nodes: ProxyNode[], full: boolean): Record<str
       'IP-CIDR6,::1/128,DIRECT,no-resolve',
       'IP-CIDR6,fc00::/7,DIRECT,no-resolve',
       'IP-CIDR6,fe80::/10,DIRECT,no-resolve',
+      ...(routing.directDomains ?? []).map((domain) => `DOMAIN-SUFFIX,${domain},DIRECT`),
+      ...(routing.proxyDomains ?? []).filter((domain) => !(routing.directDomains ?? []).includes(domain)).map((domain) => `DOMAIN-SUFFIX,${domain},PROXY`),
       'DOMAIN-SUFFIX,openai.com,PROXY',
       'DOMAIN-SUFFIX,chatgpt.com,PROXY',
       'DOMAIN-SUFFIX,oaistatic.com,PROXY',

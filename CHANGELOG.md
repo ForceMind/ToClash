@@ -12,6 +12,7 @@
 - 新增单元测试、覆盖率、严格 TypeScript、CI、GitHub Pages、Cloudflare Pages 和项目文档。
 - 完整配置新增 PROXY/AUTO 策略组、fake-ip DNS、局域网与国内直连、国际服务代理规则。
 - 中文警告现在会显示被忽略的具体参数名。
+- 新增用户自定义“始终直连/始终代理”网站的引导流程、输入校验和冲突优先级。
 
 ### English
 

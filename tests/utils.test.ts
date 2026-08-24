@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { decodeBase64 } from '../src/core/utils/base64'
 import { parseBoolean, parseNumber, parseString } from '../src/core/utils/boolean'
 import { detectProtocol } from '../src/core/parser/detect'
+import { parseDomainList } from '../src/core/utils/domain'
 
 describe('utilities', () => {
   it('parses explicit booleans without truthy string mistakes', () => {
@@ -13,4 +14,7 @@ describe('utilities', () => {
     expect(decodeBase64(encoded)).toBe('香港-node')
   })
   it('detects aliases and reports unsupported protocols', () => { expect(detectProtocol('socks://host:1')).toBe('socks5'); expect(() => detectProtocol('hysteria2://x')).toThrow('Unsupported protocol') })
+  it('normalizes domain lists, URLs and duplicate entries', () => {
+    expect(parseDomainList('Example.COM\nhttps://app.example.net/path\n*.example.org\nexample.com\nbad/path')).toEqual({ domains: ['example.com', 'app.example.net', 'example.org'], invalidLines: [5] })
+  })
 })

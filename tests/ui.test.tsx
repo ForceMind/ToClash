@@ -23,4 +23,16 @@ describe('界面语言', () => {
     fireEvent.click(screen.getByRole('button', { name: '转换' }))
     expect(screen.getByText('第 1 行：参数“unknown”当前无法映射到 Mihomo，已忽略。')).toBeTruthy()
   })
+
+  it('引导用户添加始终直连和始终代理规则', () => {
+    render(<App />)
+    fireEvent.click(screen.getByText('自定义网站分流（可选）'))
+    fireEvent.change(screen.getByLabelText('第 1 步：始终直连（绝不代理）'), { target: { value: 'bank.example' } })
+    fireEvent.change(screen.getByLabelText('第 2 步：始终代理'), { target: { value: 'https://video.example/watch' } })
+    fireEvent.change(screen.getByLabelText('代理链接'), { target: { value: 'vless://00000000-0000-4000-8000-000000000000@example.com:443' } })
+    fireEvent.click(screen.getByRole('button', { name: '转换' }))
+    const output = (screen.getByLabelText('Mihomo YAML') as HTMLTextAreaElement).value
+    expect(output).toContain('DOMAIN-SUFFIX,bank.example,DIRECT')
+    expect(output).toContain('DOMAIN-SUFFIX,video.example,PROXY')
+  })
 })
