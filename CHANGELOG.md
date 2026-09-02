@@ -13,6 +13,7 @@
 - 修复独立审查发现的 DNS 优先级问题：显式域名策略排在 GeoSite 兜底前。
 - 补齐代理节点独立 DNS 策略，仅包含本地拒绝和内网 DNS；避免内网节点名送往公共节点解析器。
 - 增加真实 Mihomo DNS / 本机连接测试与两项旧缺陷反例。具体验收状态见[验证记录](docs/VALIDATION.md)。
+- 锁定 Playwright 下载来源为官方 npm registry，避免 CI / Pages 依赖不可用镜像。
 
 ### English
 
