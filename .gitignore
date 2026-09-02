@@ -7,3 +7,5 @@ coverage
 *.local
 *.tsbuildinfo
 *.zip
+playwright-report
+test-results

@@ -2,6 +2,22 @@
 
 这里记录 ToClash 的重要变更。
 
+## 0.3.0 — 2026-09-02
+
+- 增加 OpenAI、Claude、开发者服务与 Google / YouTube 四类可切换规则预设。
+- 增加不含 `DIRECT` 的 `FORCE_PROXY` 组，以及同条件 `REJECT` 防止不支持 UDP 时降级直连。
+- 增加内网后缀 / DNS 引导、fake-IP 排除和可选 CGNAT 直连。
+- 统一规则 / DNS 编译、父子域覆盖提示、IPv4 / IPv6 目标和保留节点名称处理。
+- 错误规则设置阻断完整配置导出；仅 proxies 模式不受暂未使用的设置影响。
+- 使用 YAML AST 添加分类注释；补充核心回归、浏览器交互和实际 Mihomo 配置检查。
+- 修复独立审查发现的 DNS 优先级问题：显式域名策略排在 GeoSite 兜底前。
+- 补齐代理节点独立 DNS 策略，仅包含本地拒绝和内网 DNS；避免内网节点名送往公共节点解析器。
+- 增加真实 Mihomo DNS / 本机连接测试与两项旧缺陷反例。具体验收状态见[验证记录](docs/VALIDATION.md)。
+
+### English
+
+Added configurable service presets, a proxy-only group, coordinated intranet settings, validated domain/IP overrides and annotated YAML. Fixed explicit DNS policy ordering and isolated internal node hostname resolution; added real Mihomo DNS/connection tests and negative controls. See the validation record for acceptance status.
+
 ## 0.2.0 — 2026-08-24
 
 - 界面和项目文档默认使用简体中文，并保留英文切换。

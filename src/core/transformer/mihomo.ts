@@ -1,7 +1,38 @@
 import { ConversionError, type ProxyNode } from '../model/proxy'
+import { buildRulePlan } from '../rules/plan'
+import type { CustomRouting } from '../rules/types'
+import { uniqueNodeNames } from '../utils/names'
 
 export type MihomoProxy = Record<string, unknown>
-export interface CustomRouting { proxyDomains?: string[]; directDomains?: string[] }
+export type { CustomRouting } from '../rules/types'
+
+export const RESERVED_PROXY_NAMES = ['DIRECT', 'REJECT', 'REJECT-DROP', 'PASS', 'COMPATIBLE', 'GLOBAL', 'DNS', 'PROXY', 'AUTO', 'FORCE_PROXY'] as const
+interface ProxyGroup { name: string; type: string; proxies: string[]; url?: string; interval?: number }
+
+/** All references must resolve, and policy groups must never contain a cycle. */
+export function validateGroupReferences(groups: ProxyGroup[], nodeNames: string[]): void {
+  const builtins = new Set<string>(['DIRECT', 'REJECT', 'REJECT-DROP', 'PASS', 'COMPATIBLE', 'GLOBAL', 'DNS'])
+  const names = [...nodeNames, ...groups.map(({ name }) => name)]
+  if (new Set(names).size !== names.length || names.some((name) => builtins.has(name))) throw new ConversionError('INVALID_URI', 'Proxy and policy group names conflict.')
+  const available = new Set([...names, ...builtins])
+  const byName = new Map(groups.map((group) => [group.name, group]))
+  const visited = new Set<string>()
+  const active = new Set<string>()
+  function visit(group: ProxyGroup): void {
+    if (active.has(group.name)) throw new ConversionError('INVALID_URI', 'Policy groups contain a circular reference.')
+    if (visited.has(group.name)) return
+    if (!group.proxies.length) throw new ConversionError('MISSING_FIELD', 'A policy group has no proxy members.')
+    active.add(group.name)
+    for (const name of group.proxies) {
+      if (!available.has(name)) throw new ConversionError('MISSING_FIELD', 'A policy group references a missing proxy.')
+      const child = byName.get(name)
+      if (child) visit(child)
+    }
+    active.delete(group.name)
+    visited.add(group.name)
+  }
+  groups.forEach(visit)
+}
 
 export function validateNode(node: ProxyNode): void {
   if (!node.name || !node.server) throw new ConversionError('MISSING_FIELD', 'Proxy node is missing a name or server.')
@@ -39,63 +70,27 @@ export function toMihomoProxy(node: ProxyNode): MihomoProxy {
 }
 
 export function buildMihomoConfig(nodes: ProxyNode[], full: boolean, routing: CustomRouting = {}): Record<string, unknown> {
-  const proxies = nodes.map(toMihomoProxy)
+  nodes.forEach(validateNode)
+  const namedNodes = uniqueNodeNames(nodes, RESERVED_PROXY_NAMES)
+  const proxies = namedNodes.map(toMihomoProxy)
   if (!full) return { proxies }
-  const names = nodes.map(({ name }) => name)
+  if (!nodes.length) throw new ConversionError('MISSING_FIELD', 'A full configuration requires at least one valid proxy node.')
+  const names = namedNodes.map(({ name }) => name)
+  const groups: ProxyGroup[] = [
+    { name: 'PROXY', type: 'select', proxies: ['AUTO', 'DIRECT', ...names] },
+    { name: 'AUTO', type: 'url-test', proxies: names, url: 'https://www.gstatic.com/generate_204', interval: 300 },
+    { name: 'FORCE_PROXY', type: 'select', proxies: ['AUTO', ...names] },
+  ]
+  validateGroupReferences(groups, names)
+  const plan = buildRulePlan(routing)
   return {
     'mixed-port': 7890,
     'allow-lan': false,
     mode: 'rule',
     'log-level': 'info',
     proxies,
-    'proxy-groups': [
-      { name: 'PROXY', type: 'select', proxies: ['AUTO', 'DIRECT', ...names] },
-      { name: 'AUTO', type: 'url-test', proxies: names, url: 'https://www.gstatic.com/generate_204', interval: 300 },
-    ],
-    dns: {
-      enable: true,
-      ipv6: false,
-      'enhanced-mode': 'fake-ip',
-      'fake-ip-range': '198.18.0.1/16',
-      'fake-ip-filter': ['*.lan', '*.local', 'localhost.ptlogin2.qq.com', '+.stun.*.*', '+.stun.*.*.*'],
-      'default-nameserver': ['223.5.5.5', '119.29.29.29'],
-      nameserver: ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'],
-      'proxy-server-nameserver': ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'],
-      'direct-nameserver': ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'],
-      'direct-nameserver-follow-policy': true,
-      'nameserver-policy': {
-        'geosite:cn': ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'],
-        'geosite:geolocation-!cn': ['https://1.1.1.1/dns-query#PROXY', 'https://8.8.8.8/dns-query#PROXY'],
-      },
-    },
-    rules: [
-      'DOMAIN-SUFFIX,local,DIRECT',
-      'IP-CIDR,127.0.0.0/8,DIRECT,no-resolve',
-      'IP-CIDR,10.0.0.0/8,DIRECT,no-resolve',
-      'IP-CIDR,172.16.0.0/12,DIRECT,no-resolve',
-      'IP-CIDR,192.168.0.0/16,DIRECT,no-resolve',
-      'IP-CIDR,169.254.0.0/16,DIRECT,no-resolve',
-      'IP-CIDR6,::1/128,DIRECT,no-resolve',
-      'IP-CIDR6,fc00::/7,DIRECT,no-resolve',
-      'IP-CIDR6,fe80::/10,DIRECT,no-resolve',
-      ...(routing.directDomains ?? []).map((domain) => `DOMAIN-SUFFIX,${domain},DIRECT`),
-      ...(routing.proxyDomains ?? []).filter((domain) => !(routing.directDomains ?? []).includes(domain)).map((domain) => `DOMAIN-SUFFIX,${domain},PROXY`),
-      'DOMAIN-SUFFIX,openai.com,PROXY',
-      'DOMAIN-SUFFIX,chatgpt.com,PROXY',
-      'DOMAIN-SUFFIX,oaistatic.com,PROXY',
-      'DOMAIN-SUFFIX,oaiusercontent.com,PROXY',
-      'DOMAIN-SUFFIX,anthropic.com,PROXY',
-      'DOMAIN-SUFFIX,claude.ai,PROXY',
-      'DOMAIN-SUFFIX,github.com,PROXY',
-      'DOMAIN-SUFFIX,githubusercontent.com,PROXY',
-      'DOMAIN-SUFFIX,google.com,PROXY',
-      'DOMAIN-SUFFIX,googleapis.com,PROXY',
-      'DOMAIN-SUFFIX,gstatic.com,PROXY',
-      'DOMAIN-SUFFIX,youtube.com,PROXY',
-      'DOMAIN-SUFFIX,ytimg.com,PROXY',
-      'GEOSITE,CN,DIRECT',
-      'GEOIP,CN,DIRECT',
-      'MATCH,PROXY',
-    ],
+    'proxy-groups': groups,
+    dns: plan.dns,
+    rules: plan.sections.flatMap(({ rules }) => rules),
   }
 }

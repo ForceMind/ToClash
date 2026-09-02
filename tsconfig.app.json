@@ -6,5 +6,5 @@
     "resolveJsonModule": true, "isolatedModules": true, "noEmit": true, "jsx": "react-jsx",
     "noUncheckedIndexedAccess": true, "exactOptionalPropertyTypes": true
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "scripts", "e2e", "playwright.config.ts"]
 }
