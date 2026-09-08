@@ -40,6 +40,7 @@ function openIntranet(): void {
 
 describe('界面与分流引导', () => {
   beforeEach(() => {
+    window.localStorage.clear()
     vi.stubGlobal(
       'matchMedia',
       vi.fn(() => ({
@@ -54,6 +55,77 @@ describe('界面与分流引导', () => {
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
     vi.useRealTimers()
+  })
+
+  it('恢复本地表单且清空节点保留配置，不保存节点凭据', () => {
+    const first = render(<App />)
+    fill('第 1 步：始终直连', 'direct.example')
+    fill('第 2 步：始终代理', 'proxy.example')
+    openIntranet()
+    fill('内网域名后缀（每行一个）', 'corp.example')
+    fill('内网 DNS 服务器（每行一个）', '192.0.2.53')
+    convertExample()
+    fireEvent.click(screen.getByRole('button', { name: '清空节点和结果' }))
+    expect(
+      (screen.getByLabelText('第 1 步：始终直连') as HTMLTextAreaElement).value,
+    ).toBe('direct.example')
+    const stored = window.localStorage.getItem('toclash.routing.v1')!
+    expect(stored).not.toContain('00000000')
+    expect(Object.keys(JSON.parse(stored))).toHaveLength(6)
+    first.unmount()
+    render(<App />)
+    expect(
+      (screen.getByLabelText('代理链接') as HTMLTextAreaElement).value,
+    ).toBe('')
+    expect(
+      (screen.getByLabelText('第 2 步：始终代理') as HTMLTextAreaElement).value,
+    ).toBe('proxy.example')
+    expect(
+      (
+        screen.getByLabelText(
+          '内网 DNS 服务器（每行一个）',
+        ) as HTMLTextAreaElement
+      ).value,
+    ).toBe('192.0.2.53')
+    window.localStorage.setItem('other-app', 'keep')
+    fireEvent.click(screen.getByRole('button', { name: '重置已保存设置' }))
+    expect(window.localStorage.getItem('toclash.routing.v1')).toBeNull()
+    expect(window.localStorage.getItem('other-app')).toBe('keep')
+  })
+
+  it.each(['broken json', '{"version":2}', '{"version":1,"directInput":42}'])(
+    '损坏或未知存储不崩溃且不自动覆盖：%s',
+    (raw) => {
+      window.localStorage.setItem('toclash.routing.v1', raw)
+      render(<App />)
+      expect(screen.getByText(/本地设置读取或保存失败/)).toBeTruthy()
+      expect(window.localStorage.getItem('toclash.routing.v1')).toBe(raw)
+      convertExample()
+      expect(output()).not.toBe('')
+      fireEvent.click(screen.getByRole('button', { name: '重置已保存设置' }))
+      expect(window.localStorage.getItem('toclash.routing.v1')).toBeNull()
+    },
+  )
+
+  it('存储写入拒绝时提示失败，表单和转换仍可使用', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError')
+    })
+    render(<App />)
+    fill('第 1 步：始终直连', 'direct.example')
+    expect(screen.getByText(/本地设置读取或保存失败/)).toBeTruthy()
+    convertExample()
+    expect(output()).toContain('DOMAIN-SUFFIX,direct.example,DIRECT')
+  })
+
+  it('存储读取被禁用时使用默认值并提示', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('SecurityError')
+    })
+    render(<App />)
+    expect(screen.getByText(/本地设置读取或保存失败/)).toBeTruthy()
+    convertExample()
+    expect(output()).not.toBe('')
   })
 
   it('默认使用简体中文，并可切换到英文', () => {
@@ -269,7 +341,7 @@ describe('界面与分流引导', () => {
     expect(screen.getByText(/项设置与本机 \/ 局域网范围重叠/)).toBeTruthy()
   })
 
-  it('清空重置分流、预设、内网和错误，同时保留语言与主题', () => {
+  it('清空节点后单独重置设置，同时保留语言与主题', () => {
     render(<App />)
     openPresets()
     fireEvent.click(screen.getByLabelText('Codex / OpenAI'))
@@ -282,7 +354,12 @@ describe('界面与分流引导', () => {
     convertExample()
     fireEvent.click(screen.getByRole('button', { name: '切换到深色模式' }))
     fireEvent.click(screen.getByRole('button', { name: 'Switch to English' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Clear nodes and output' }),
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Reset saved settings' }),
+    )
     expect(
       screen.getByRole('heading', { name: 'Proxy links → Clash YAML' }),
     ).toBeTruthy()
@@ -396,7 +473,7 @@ describe('界面与分流引导', () => {
     render(<App />)
     convertExample()
     fireEvent.click(screen.getByRole('button', { name: '复制' }))
-    fireEvent.click(screen.getByRole('button', { name: '清空' }))
+    fireEvent.click(screen.getByRole('button', { name: '清空节点和结果' }))
     resolveCopy?.()
     await promise
     expect(screen.getByRole('status').textContent).toBe('')

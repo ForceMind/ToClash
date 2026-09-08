@@ -31,8 +31,8 @@ export function RoutingOptions({
       </summary>
       <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
         {zh
-          ? '每行一个域名、网址或 IP。网址只提取主机名；域名包含其子域名，IP 仅匹配该地址。请勿填写逗号分隔的 Clash 规则。内容仅保存在当前页面内存。'
-          : 'One domain, URL, or IP per line. URLs contribute only their hostname; domains include subdomains, while IPs match exactly. Do not paste comma-separated Clash rules. Values stay in page memory.'}
+          ? '每行一个域名、网址或 IP。网址只提取主机名；域名包含其子域名，IP 仅匹配该地址。请勿填写逗号分隔的 Clash 规则。内容自动保存在此浏览器，下次打开同一站点恢复。'
+          : 'One domain, URL, or IP per line. URLs contribute only their hostname; domains include subdomains, while IPs match exactly. Do not paste comma-separated Clash rules. Values are saved in this browser and restored on this site.'}
       </p>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div>

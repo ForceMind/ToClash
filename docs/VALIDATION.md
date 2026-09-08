@@ -1,3 +1,20 @@
+# v0.3.1 本地保存验收（2026-09-08）
+
+- 批准范围：自定义网站分流 / 内网 DNS 的本地保存；拆分清空操作；仓库整理与填写文档；本地交付，不含推送或部署。
+- 实现：`src/settings/storage.ts` 白名单保存五个字段，存储格式版本为 1；未知版本或损坏数据不在首次挂载时覆盖；禁止存储时提供失败提示。只删除本工具 key。
+- 版本：0.3.0 → 0.3.1，package / lockfile / 可见页脚一致。
+- 单元与界面：Node 22 下 `npm run test`，6 个文件、167 项通过，覆盖恢复、清空保留、重置、存储损坏 / 读取拒绝 / 写入拒绝及既有转换流程。
+- 工具链：本机默认 Node 26 的实验性 Web Storage 与现有 Vitest / jsdom 冲突；使用项目推荐 Node 22 直接通过，Node 26 配置 `NODE_OPTIONS=--no-experimental-webstorage` 也通过。不是浏览器存储失败。
+- 静态检查与构建：`npm run lint`、`npm run build` 通过，后者含 TypeScript 检查。
+- Chromium：`npm run test:browser` 4 项通过，单 worker；桌面 1440×1000 浅色、手机 390×844 深色。覆盖刷新恢复、关闭页面后新标签打开恢复、节点不持久保存、重置后刷新、转换、下载、复制及无外发数据请求。
+- 视觉：已查看两种尺寸的 settings 截图，保存说明与两个清空操作可见，无横向溢出；页脚 v0.3.1。截图位于忽略目录 `test-results/`。
+- 自查：由主智能体检查字段范围、失败路径、StrictMode 首次 effect 不写入、其他站点存储保留、文档与行为一致；未安排独立代理审查。
+- 仓库整理：核实 AppleDouble 魔数后备份并清理 `._*` 附属文件，包括造成 Git 索引错误的附属 `.idx`；真实 Git 数据保留，`git log` 已无原错误。备份 `/private/tmp/toclash-appledouble-full-backup.tar.gz`。外置盘可能重建附属文件，Git / ESLint / TypeScript / Vitest / Playwright 已排除它们。
+- 交付：本地代码、填写指南、隐私及架构文档已完成。没有将真实代理凭据、企业域名或 DNS 写入仓库示例。
+- 边界：没有推送或更新线上站点；没有改动系统 DNS / Clash，没有验证用户内网 DNS 可达性、实际企业网站或旧节点连接；未测试整个浏览器进程退出后的恢复、Safari / Edge 或跨标签同时编辑冲突。
+
+---
+
 # 规则增强版验证记录
 
 本文件区分已执行验证和待验证项。测试始终使用假节点，不包含真实密码、UUID 或服务器。

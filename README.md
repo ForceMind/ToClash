@@ -8,13 +8,15 @@ ToClash 是一个隐私优先的纯前端单页工具。每行粘贴一个代理
 
 **在线使用：** <https://forcemind.github.io/ToClash/>
 
+填写时先看[表单填写指南](docs/FILLING_GUIDE.md)，规则细节看[规则与 DNS 使用指南](docs/RULES.md)。
+
 ## 功能
 
 - 支持 VLESS、VMess、Trojan、Shadowsocks、SOCKS5、HTTP 和 HTTPS
 - 支持 TLS、WebSocket、gRPC、HTTP/H2、Reality 和 VLESS XHTTP
 - 输出包含策略组、fake-ip DNS 和常用分流规则的完整 Mihomo 配置，或仅输出 `proxies:`
 - 支持 Unicode 名称、IPv4/IPv6、节点重名处理、批量错误与警告
-- 本地复制和 YAML 下载；无后端、无统计、无持久化、无转换 API
+- 本地复制和 YAML 下载；无后端、无统计、无转换 API；自定义分流和内网 DNS 在浏览器本地保存
 - 简体中文默认界面，可切换 English；响应式明暗主题
 - 提供“始终直连”和“始终代理”的自定义网站分流引导，支持域名或完整网址
 - 提供 OpenAI、Claude、开发者服务、Google / YouTube 四类可切换规则预设
@@ -41,11 +43,11 @@ XHTTP 支持 URI 中的 `x_padding_bytes` / `x-padding-bytes`，以及 `extra` J
 
 用户直连优先于用户代理和服务预设，但不能覆盖更优先的本机 / 局域网与内网保护。用户“始终代理”和 AI 预设使用 `FORCE_PROXY`；该组没有 `DIRECT`，对应规则后附同条件 `REJECT`，避免不支持 UDP 时落入后续直连规则。普通 `PROXY` 仍允许手动选择 `DIRECT`。
 
-域名规则覆盖自身及子域名；网址只提取主机，不按路径分流。IPv4 / IPv6 转换为精确 IP 规则。任何无效设置都会暂停完整配置导出，修正后自动恢复；切换为“仅 proxies”不应用分流设置。清空会同时重置节点、警告和规则设置，语言与主题不变。详见[规则与 DNS 使用指南](docs/RULES.md)。
+域名规则覆盖自身及子域名；网址只提取主机，不按路径分流。IPv4 / IPv6 转换为精确 IP 规则。任何无效设置都会暂停完整配置导出，修正后自动恢复；切换为“仅 proxies”不应用分流设置。“清空节点和结果”保留分流设置；“重置已保存设置”单独清除自定义及内网配置并恢复规则默认值。详见[规则与 DNS 使用指南](docs/RULES.md)。
 
 ## 本地开发
 
-需要 Node.js 20 或更高版本；推荐 Node.js 22（本轮验证版本）。
+需要 Node.js 20 或更高版本；推荐 Node.js 22（本轮验证版本）。Node.js 26 的实验性 Web Storage 与当前 Vitest / jsdom 存在冲突；测试请使用 Node.js 22，或临时设置 `NODE_OPTIONS=--no-experimental-webstorage`。
 
 ```bash
 npm install
@@ -122,7 +124,7 @@ assets/
 
 ## 隐私与安全
 
-输入仅存在于 React 组件内存中，不写入 URL、LocalStorage 或日志。剪贴板和文件下载仅由用户主动触发。请勿在 Issue 中提交真实节点或凭据，详见[隐私声明](PRIVACY.md)和[安全政策](SECURITY.md)。
+代理链接和生成的 YAML 仅存在于 React 组件内存中，不写入 URL、LocalStorage 或日志。自定义网站分流和内网 DNS 使用 LocalStorage 自动保存。剪贴板和文件下载仅由用户主动触发。请勿在 Issue 中提交真实节点或凭据，详见[隐私声明](PRIVACY.md)和[安全政策](SECURITY.md)。
 
 ## 项目范围
 
@@ -136,4 +138,4 @@ ToClash 是格式转换器，不是 VPN 客户端、代理服务器、订阅服�
 
 ---
 
-English summary: ToClash converts common proxy URIs to Mihomo / Clash YAML entirely in your browser. No input is uploaded or persisted. The interface defaults to Simplified Chinese and can switch to English.
+English summary: ToClash converts common proxy URIs to Mihomo / Clash YAML entirely in your browser. No input is uploaded. Custom routing and intranet DNS are persisted locally; proxy links are not. The interface defaults to Simplified Chinese and can switch to English.

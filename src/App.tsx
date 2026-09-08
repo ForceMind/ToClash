@@ -17,6 +17,7 @@ import type {
 import { serializeMihomo, type OutputFormat } from './core/serializer/yaml'
 import { parseDomainList } from './core/utils/domain'
 import { parseIntranetConfig } from './core/utils/intranet'
+import { loadSettings, saveSettings } from './settings/storage'
 import packageJson from '../package.json'
 
 const example = `vless://00000000-0000-4000-8000-000000000000@example.com:443?encryption=none&security=tls&type=ws&host=example.com&path=%2Fws&sni=example.com#Example%20VLESS
@@ -57,13 +58,22 @@ export default function App() {
     () => window.matchMedia('(prefers-color-scheme: dark)').matches,
   )
   const [zh, setZh] = useState(true)
-  const [directInput, setDirectInput] = useState('')
-  const [proxyInput, setProxyInput] = useState('')
+  const [restored] = useState(loadSettings)
+  const [storageFailed, setStorageFailed] = useState(restored.failed)
+  const lastSaved = useRef(JSON.stringify(restored.settings))
+  const [directInput, setDirectInput] = useState(restored.settings.directInput)
+  const [proxyInput, setProxyInput] = useState(restored.settings.proxyInput)
   const [presets, setPresets] = useState(defaultPresets)
   const [bypassCgnat, setBypassCgnat] = useState(false)
-  const [intranetEnabled, setIntranetEnabled] = useState(false)
-  const [intranetSuffixInput, setIntranetSuffixInput] = useState('')
-  const [intranetDnsInput, setIntranetDnsInput] = useState('')
+  const [intranetEnabled, setIntranetEnabled] = useState(
+    restored.settings.intranetEnabled,
+  )
+  const [intranetSuffixInput, setIntranetSuffixInput] = useState(
+    restored.settings.intranetSuffixInput,
+  )
+  const [intranetDnsInput, setIntranetDnsInput] = useState(
+    restored.settings.intranetDnsInput,
+  )
   const revision = useRef(0)
 
   useEffect(() => {
@@ -73,6 +83,27 @@ export default function App() {
   useEffect(() => {
     document.documentElement.lang = zh ? 'zh-CN' : 'en'
   }, [zh])
+
+  useEffect(() => {
+    // Do not overwrite unreadable or future-version storage on initial mount.
+    const settings = {
+      directInput,
+      proxyInput,
+      intranetEnabled,
+      intranetSuffixInput,
+      intranetDnsInput,
+    }
+    const serialized = JSON.stringify(settings)
+    if (serialized === lastSaved.current) return
+    lastSaved.current = serialized
+    setStorageFailed(!saveSettings(settings))
+  }, [
+    directInput,
+    proxyInput,
+    intranetEnabled,
+    intranetSuffixInput,
+    intranetDnsInput,
+  ])
 
   const directDomains = useMemo(
     () => parseDomainList(directInput),
@@ -144,6 +175,11 @@ export default function App() {
   const clear = () => {
     invalidateNotice()
     setInput('')
+    setResult(null)
+  }
+
+  const resetSettings = () => {
+    invalidateNotice()
     setDirectInput('')
     setProxyInput('')
     setPresets(defaultPresets)
@@ -151,7 +187,15 @@ export default function App() {
     setIntranetEnabled(false)
     setIntranetSuffixInput('')
     setIntranetDnsInput('')
-    setResult(null)
+    setStorageFailed(
+      !saveSettings({
+        directInput: '',
+        proxyInput: '',
+        intranetEnabled: false,
+        intranetSuffixInput: '',
+        intranetDnsInput: '',
+      }),
+    )
   }
 
   const copy = async () => {
@@ -274,6 +318,25 @@ export default function App() {
             </div>
             {format === 'full' ? (
               <div className="space-y-3">
+                <p
+                  className="text-sm text-slate-600 dark:text-slate-400"
+                  aria-live="polite"
+                >
+                  {storageFailed
+                    ? zh
+                      ? '本地设置读取或保存失败，当前内容可能无法在下次打开时恢复。请检查浏览器的网站存储权限，或重置已保存设置。'
+                      : 'Local settings could not be read or saved. They may not survive reopening. Check site storage permissions or reset saved settings.'
+                    : zh
+                      ? '自定义网站分流和内网 DNS 自动保存在此浏览器；同一站点下次打开会恢复。清除网站数据会删除设置。'
+                      : 'Custom routing and intranet DNS are saved in this browser and restored on this site. Clearing site data removes them.'}
+                </p>
+                <button
+                  type="button"
+                  className="button-secondary"
+                  onClick={resetSettings}
+                >
+                  {zh ? '重置已保存设置' : 'Reset saved settings'}
+                </button>
                 <RuleSettings
                   presets={presets}
                   bypassCgnat={bypassCgnat}
@@ -399,7 +462,7 @@ export default function App() {
                 onClick={clear}
                 className="button-secondary"
               >
-                {zh ? '清空' : 'Clear'}
+                {zh ? '清空节点和结果' : 'Clear nodes and output'}
               </button>
             </div>
             <div

@@ -13,7 +13,7 @@ ToClash 是纯静态 React 应用，不包含后端、数据库、Service Worker
 
 每种协议 parser 都是 `src/core/parser` 下的纯函数，优先使用标准 URL parser，IPv6 地址也由标准实现处理。VMess 与旧版 Shadowsocks 共用 UTF-8 Base64 工具。单行失败会转换为结构化问题，不会中断批次。
 
-`src/core/model/proxy.ts` 定义与输出格式无关的节点和错误类型；未来的 sing-box 或 Xray transformer 可以复用它。`mihomo.ts` 校验必要字段并保持 YAML 字段顺序稳定。React UI 通过核心层转换、规则规划与序列化 API 生成结果，输入始终留在组件内存。
+`src/core/model/proxy.ts` 定义与输出格式无关的节点和错误类型；未来的 sing-box 或 Xray transformer 可以复用它。`mihomo.ts` 校验必要字段并保持 YAML 字段顺序稳定。React UI 通过核心层转换、规则规划与序列化 API 生成结果，代理链接始终留在组件内存，自定义分流和内网 DNS 由 `src/settings/storage.ts` 保存到 LocalStorage。
 
 ## 规则 / DNS 分支
 
@@ -64,11 +64,14 @@ Mihomo DNS 并非全局最长后缀查找：连续普通域名可以构成最长
 - 编辑规则：实时重新生成；非法输入暂停完整输出和复制/下载。
 - 切换仅 proxies：隐藏面板并暂时忽略规则错误；回到完整模式仍保留和验证表单值。
 - 内网开关：关闭时保留输入但不应用；开启后必须完整有效。
-- 清空：重置节点、结果、通知和规则值，保留语言、主题及输出格式。
+- 清空节点和结果：仅清除节点、结果和通知。
+- 重置已保存设置：删除本工具存储项并恢复规则默认值，保留节点、语言、主题和输出格式。
+- 自动恢复：只读取 v1 存储的五个白名单字段，检查字段类型；损坏或未知版本提示失败且初次挂载不覆盖原值，编辑或显式重置后可以替换。输入继续由规则校验器验证。
+- 保存：自定义及内网输入变化时同步写入；空默认值删除本工具 key，不清理同源其他存储项。写入失败显示提示。
 - 输出失败：不显示原始异常/堆栈，只显示安全提示。
 - 复制/下载：仅显式点击触发。异步复制用修订号防止过期提示；下载移除临时元素并延迟释放 Blob URL。
 
-不存在远程同步、持久化、后台轮询或系统设置变更。临时 Blob URL 仅用于下载，不将输入写入页面 URL。
+不存在远程同步、后台轮询或系统设置变更。持久化仅限自定义分流和内网 DNS，服务预设和 CGNAT 不保存。临时 Blob URL 仅用于下载，不将输入写入页面 URL。
 
 ### 验证边界
 
@@ -118,7 +121,7 @@ Parsers return normalized nodes and warnings. They do not know about YAML key na
 
 ### UI boundary
 
-React uses pure conversion and rule-planning APIs. Clipboard and Blob downloads are explicit user actions. Input stays in component memory and is cleared without page reload. Rule and DNS semantics need runtime verification beyond configuration syntax checks.
+React uses pure conversion and rule-planning APIs. Clipboard and Blob downloads are explicit user actions. Proxy input stays in component memory. Custom routing and intranet DNS are stored locally with a versioned, validated field allowlist. Rule and DNS semantics need runtime verification beyond configuration syntax checks.
 
 ## Adding protocol compatibility
 
