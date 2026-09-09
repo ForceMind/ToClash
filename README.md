@@ -2,7 +2,7 @@
 
 把已有的代理链接转换成 Clash / Mihomo 配置文件。打开网页、粘贴链接、下载配置，再导入你的代理客户端即可。
 
-**[打开网站](https://forcemind.github.io/ToClash/)**
+**[打开网站（Cloudflare Pages）](https://toclash.xincreates.com/)** · [GitHub Pages 备用入口](https://forcemind.github.io/ToClash/)
 
 ToClash 不提供代理节点，也不会替你连接 VPN。请先准备可用的代理链接，以及支持 Mihomo 配置的客户端。
 

@@ -73,6 +73,16 @@ https://forcemind.github.io/ToClash/
 
 ### Cloudflare Pages
 
+生产项目为 `to-clash`，生产分支 `main`；站点为 https://toclash.xincreates.com/（默认地址 https://to-clash.pages.dev/）。目前使用 Direct Upload，未绑定 GitHub 自动构建。GitHub Pages 工作流不会更新该项目。
+
+使用现有 Cloudflare 登录，将干净的构建目录上传：
+
+```bash
+npx wrangler pages deploy /path/to/clean-dist --project-name to-clash --branch main
+```
+
+`clean-dist` 只应包含本次构建的 index.html、favicon.svg 和 assets 文件；从 macOS 外置磁盘复制时排除 `._*`、`.DS_Store`，不要上传节点配置或源码。上传后回读生产部署，并访问自定义域名核对页脚版本。最近一次部署见[发布记录](RELEASE_v0.3.3.md)。
+
 ```text
 Build command: npm run build
 Build output directory: dist

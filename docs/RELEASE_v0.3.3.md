@@ -25,3 +25,12 @@
 - 首次普通地址仍命中旧页面缓存；带版本参数的[新版入口](https://forcemind.github.io/ToClash/?v=94d81b0)已核验。如果仍显示旧版，可刷新或使用该入口，无需清除已保存的网站设置。
 
 以上线上验收使用公开示例节点，未连接真实 VPN 节点或服务账号。后续仅补写发布证据的文档提交不会改变上述应用代码。
+
+## Cloudflare Pages 生产部署（2026-09-09）
+
+- 现有项目：`to-clash`，生产分支 `main`，Direct Upload。
+- 自定义域名：[toclash.xincreates.com](https://toclash.xincreates.com/)。默认域名：[to-clash.pages.dev](https://to-clash.pages.dev/)。
+- 干净部署：[85bb1460.to-clash.pages.dev](https://85bb1460.to-clash.pages.dev)，来源提交 `b4ff088608f4b51cc6bf127f0bb1ebb6bd829cd7`，版本 v0.3.3。
+- 使用 Wrangler 4.130.0 上传 4 个静态文件；构建目录中的 macOS AppleDouble 附属文件已在最终上传目录中排除，未删除工作区文件。
+- 浏览器实际访问默认域名和自定义域名均显示 v0.3.3；自定义域名显示 29 项服务和 X/TikTok 入口。命令行 HTTP 检查遇到 403，因此未将逐字节远端文件比对列为通过证据。
+- GitHub Pages 与 Cloudflare Pages 分别部署。该 Cloudflare 项目未绑定 Git，推送 GitHub 不会自动更新它；后续需再次 Direct Upload。
