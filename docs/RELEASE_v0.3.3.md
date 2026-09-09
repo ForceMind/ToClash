@@ -16,4 +16,12 @@
 
 本地单元/界面 212 项、桌面和手机 Chromium 浏览器 8 项通过；生产构建（含类型检查）与 ESLint 通过。发布前覆盖率检查再次通过，核心代码行覆盖率 99.71%，分支覆盖率 90.23%。域名规则和生成器证据不等同于真实账号、节点、公司 DNS 或所有原生客户端流量验收。
 
-发布目标：仓库 main 与现有 GitHub Pages。CI 和部署状态以[GitHub Actions](https://github.com/ForceMind/ToClash/actions)中对应提交为准；本条发布记录在推送前建立，线上版本须在部署成功后核验。
+已发布到 main 和现有 GitHub Pages（2026-09-09）：
+
+- 功能提交：`94d81b009062d1a3b7bb67dd27c27b1935270068`，远端 main 回读一致。
+- [CI 通过](https://github.com/ForceMind/ToClash/actions/runs/34336257144)：该提交的完整质量检查通过。
+- [GitHub Pages 部署成功](https://github.com/ForceMind/ToClash/actions/runs/34336257028)。
+- 可见浏览器线上核验：页脚 v0.3.3、29 项服务、默认直连选择、X/TikTok 勾选与搜索、假节点转换 2/2 成功；输出包含 FORCE_PROXY、代理 DoH 与 MATCH,DIRECT。
+- 首次普通地址仍命中旧页面缓存；带版本参数的[新版入口](https://forcemind.github.io/ToClash/?v=94d81b0)已核验。如果仍显示旧版，可刷新或使用该入口，无需清除已保存的网站设置。
+
+以上线上验收使用公开示例节点，未连接真实 VPN 节点或服务账号。后续仅补写发布证据的文档提交不会改变上述应用代码。

@@ -1,6 +1,6 @@
 # v0.3.3 当前本地验证（2026-09-09）
 
-以下是当前工作树的本地证据，使用假节点和浏览器测试数据。它证明生成器、构建产物和受测 Chromium 流程；不证明真实节点、企业 DNS、VPN 出口 IP 或线上部署。
+以下是 v0.3.3 功能提交的本地证据，使用假节点和浏览器测试数据。它证明生成器、构建产物和受测 Chromium 流程；不证明真实节点、企业 DNS、VPN 出口 IP 或线上部署。
 
 | 检查 | 当前结果 |
 | --- | --- |
@@ -14,7 +14,7 @@
 
 实现范围：29 项、6 类服务预设，其中原四项默认开启，新增 25 项默认关闭；旧 v1 五字段设置会补齐新字段。默认直连模式使用 `system` DNS，选中服务使用 `FORCE_PROXY` 和对应的代理 DoH；显式内网 DNS 保持其业务及节点引导优先级。VLESS / VMess UUID 接受 8-4-4-4-12 十六进制凭据形状，不限制 RFC 版本或变体位。
 
-远程验证尚未完成：当前 [GitHub Pages](https://forcemind.github.io/ToClash/) 可见基线仍为 v0.3.1；本次推送后的 [CI](https://github.com/ForceMind/ToClash/actions/workflows/ci.yml) 和 [GitHub Pages 部署](https://github.com/ForceMind/ToClash/actions/workflows/deploy-pages.yml) 均待 GitHub Actions 实际运行并回读结果。线上 v0.3.3、真实节点、公司网络和客户端实际流量在此之前均为待验证项。
+远程发布已完成：功能提交 `94d81b009062d1a3b7bb67dd27c27b1935270068` 的 [CI](https://github.com/ForceMind/ToClash/actions/runs/34336257144) 和 [Pages 部署](https://github.com/ForceMind/ToClash/actions/runs/34336257028)均成功。可见浏览器核验线上 v0.3.3、29 项服务、默认直连和 X/TikTok 搜索勾选，使用假节点转换得到对应代理/DNS与 MATCH,DIRECT。完整发布与缓存说明见[发布记录](RELEASE_v0.3.3.md)。真实节点、公司网络和客户端实际流量仍未验证。
 
 ---
 
