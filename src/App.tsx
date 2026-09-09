@@ -9,26 +9,15 @@ import { RuleSettings } from './components/RuleSettings'
 import { ThemeToggle } from './components/ThemeToggle'
 import { convertLinks } from './core/parser'
 import { buildRulePlan } from './core/rules/plan'
-import type {
-  CustomRouting,
-  PresetId,
-  RoutingWarning,
-} from './core/rules/types'
+import type { CustomRouting, RoutingWarning } from './core/rules/types'
 import { serializeMihomo, type OutputFormat } from './core/serializer/yaml'
 import { parseDomainList } from './core/utils/domain'
 import { parseIntranetConfig } from './core/utils/intranet'
-import { loadSettings, saveSettings } from './settings/storage'
+import { defaultPresets, loadSettings, saveSettings } from './settings/storage'
 import packageJson from '../package.json'
 
 const example = `vless://00000000-0000-4000-8000-000000000000@example.com:443?encryption=none&security=tls&type=ws&host=example.com&path=%2Fws&sni=example.com#Example%20VLESS
 trojan://example-password@example.net:443?security=tls&sni=example.net#Example%20Trojan`
-
-const defaultPresets: Record<PresetId, boolean> = {
-  openai: true,
-  claude: true,
-  developer: true,
-  google: true,
-}
 
 function warningMessage(warning: RoutingWarning, zh: boolean): string {
   const { count, code } = warning
@@ -63,8 +52,11 @@ export default function App() {
   const lastSaved = useRef(JSON.stringify(restored.settings))
   const [directInput, setDirectInput] = useState(restored.settings.directInput)
   const [proxyInput, setProxyInput] = useState(restored.settings.proxyInput)
-  const [presets, setPresets] = useState(defaultPresets)
-  const [bypassCgnat, setBypassCgnat] = useState(false)
+  const [mode, setMode] = useState<'standard' | 'direct'>(
+    restored.settings.mode,
+  )
+  const [presets, setPresets] = useState(restored.settings.presets)
+  const [bypassCgnat, setBypassCgnat] = useState(restored.settings.bypassCgnat)
   const [intranetEnabled, setIntranetEnabled] = useState(
     restored.settings.intranetEnabled,
   )
@@ -92,12 +84,18 @@ export default function App() {
       intranetEnabled,
       intranetSuffixInput,
       intranetDnsInput,
+      mode,
+      presets,
+      bypassCgnat,
     }
     const serialized = JSON.stringify(settings)
     if (serialized === lastSaved.current) return
     lastSaved.current = serialized
     setStorageFailed(!saveSettings(settings))
   }, [
+    mode,
+    presets,
+    bypassCgnat,
     directInput,
     proxyInput,
     intranetEnabled,
@@ -111,8 +109,13 @@ export default function App() {
   )
   const proxyDomains = useMemo(() => parseDomainList(proxyInput), [proxyInput])
   const intranet = useMemo(
-    () => parseIntranetConfig(intranetSuffixInput, intranetDnsInput),
-    [intranetSuffixInput, intranetDnsInput],
+    () =>
+      parseIntranetConfig(
+        intranetSuffixInput,
+        intranetDnsInput,
+        mode === 'direct',
+      ),
+    [intranetSuffixInput, intranetDnsInput, mode],
   )
   const routingInvalid =
     format === 'full' &&
@@ -125,6 +128,7 @@ export default function App() {
 
   const routing = useMemo<CustomRouting>(
     () => ({
+      mode,
       directDomains: directDomains.domains,
       proxyDomains: proxyDomains.domains,
       presets,
@@ -132,6 +136,7 @@ export default function App() {
       intranet: intranetEnabled ? intranet.zones : [],
     }),
     [
+      mode,
       directDomains,
       proxyDomains,
       presets,
@@ -182,6 +187,7 @@ export default function App() {
     invalidateNotice()
     setDirectInput('')
     setProxyInput('')
+    setMode('standard')
     setPresets(defaultPresets)
     setBypassCgnat(false)
     setIntranetEnabled(false)
@@ -189,6 +195,9 @@ export default function App() {
     setIntranetDnsInput('')
     setStorageFailed(
       !saveSettings({
+        mode: 'standard',
+        presets: defaultPresets,
+        bypassCgnat: false,
         directInput: '',
         proxyInput: '',
         intranetEnabled: false,
@@ -327,8 +336,8 @@ export default function App() {
                       ? '本地设置读取或保存失败，当前内容可能无法在下次打开时恢复。请检查浏览器的网站存储权限，或重置已保存设置。'
                       : 'Local settings could not be read or saved. They may not survive reopening. Check site storage permissions or reset saved settings.'
                     : zh
-                      ? '自定义网站分流和内网 DNS 自动保存在此浏览器；同一站点下次打开会恢复。清除网站数据会删除设置。'
-                      : 'Custom routing and intranet DNS are saved in this browser and restored on this site. Clearing site data removes them.'}
+                      ? '网络模式、服务选择、自定义分流和内网 DNS 自动保存在此浏览器；同一站点下次打开会恢复。清除网站数据会删除设置。'
+                      : 'Network mode, service choices, custom routing and intranet DNS are saved in this browser and restored on this site. Clearing site data removes them.'}
                 </p>
                 <button
                   type="button"
@@ -337,7 +346,42 @@ export default function App() {
                 >
                   {zh ? '重置已保存设置' : 'Reset saved settings'}
                 </button>
+                <div className="rounded-xl border border-slate-300 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+                  <label htmlFor="network-mode" className="block font-semibold">
+                    {zh ? '网络模式' : 'Network mode'}
+                  </label>
+                  <select
+                    id="network-mode"
+                    value={mode}
+                    onChange={(event) => {
+                      invalidateNotice()
+                      setMode(event.target.value as 'standard' | 'direct')
+                    }}
+                    className="mt-3 w-full rounded-lg border border-slate-300 bg-white p-3 text-sm dark:border-slate-700 dark:bg-slate-950"
+                  >
+                    <option value="standard">
+                      {zh
+                        ? '常规分流：国内直连，其他代理'
+                        : 'Standard: mainland China direct, others proxied'}
+                    </option>
+                    <option value="direct">
+                      {zh
+                        ? '默认直连，仅指定服务代理'
+                        : 'Direct by default, proxy selected services only'}
+                    </option>
+                  </select>
+                  <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                    {mode === 'direct'
+                      ? zh
+                        ? '适合当前网络已能访问国际互联网。勾选下方需要代理的服务；其他流量直连，默认使用系统 DNS。代理出口在客户端的 FORCE_PROXY 中手动选择，不自动切换节点。'
+                        : 'For networks with direct Internet access. Select services below to proxy; other traffic connects directly using system DNS. Choose the exit manually in FORCE_PROXY; nodes do not switch automatically.'
+                      : zh
+                        ? '中国大陆直连，其他流量交给 PROXY；保留原有分流和公共 DNS 设置。'
+                        : 'Mainland China connects directly; other traffic uses PROXY with the existing public DNS settings.'}
+                  </p>
+                </div>
                 <RuleSettings
+                  directMode={mode === 'direct'}
                   presets={presets}
                   bypassCgnat={bypassCgnat}
                   onPresetChange={(id, enabled) => {
@@ -351,6 +395,7 @@ export default function App() {
                   zh={zh}
                 />
                 <RoutingOptions
+                  directMode={mode === 'direct'}
                   direct={directInput}
                   proxy={proxyInput}
                   directInvalid={directDomains.invalidLines}
@@ -368,6 +413,7 @@ export default function App() {
                   zh={zh}
                 />
                 <IntranetSettings
+                  directMode={mode === 'direct'}
                   enabled={intranetEnabled}
                   suffixInput={intranetSuffixInput}
                   dnsInput={intranetDnsInput}

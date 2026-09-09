@@ -31,6 +31,10 @@ describe('VLESS', () => {
     expect(() => parseLink('vless://bad@example.com:443')).toThrow('UUID')
     expect(() => parseLink(`vless://${uuid}@example.com:443?type=kcp`)).toThrow('transport')
   })
+  it('accepts a credential-shaped UUID outside RFC version and variant ranges', () => {
+    const nonRfcUuid = '00000000-0000-f000-f000-000000000000'
+    expect(parseLink(`vless://${nonRfcUuid}@example.com:443#Credential`).node.uuid).toBe(nonRfcUuid)
+  })
 })
 
 describe('VMess', () => {

@@ -1,8 +1,8 @@
 import { ConversionError } from '../model/proxy'
 import { parseRoutingTarget } from '../utils/domain'
 import { normalizeDnsServer } from '../utils/intranet'
-import { CGNAT_RULE, DIRECT_DNS, LOCAL_DNS, LOCAL_DOMAINS, LOCAL_IP_RULES, proxyDns } from './defaults'
-import { RULE_PRESETS } from './presets'
+import { CGNAT_RULE, DIRECT_DNS, LOCAL_DNS, LOCAL_DOMAINS, LOCAL_IP_RULES, proxyDns, SYSTEM_DNS } from './defaults'
+import { DEFAULT_PRESETS, DIRECT_MODE_PRESET_ADDITIONS, RULE_PRESETS } from './presets'
 import type { CustomRouting, DomainRule, IntranetZone, RulePlan, RuleSection, RoutingWarning } from './types'
 
 type Target = NonNullable<ReturnType<typeof parseRoutingTarget>>
@@ -64,7 +64,9 @@ function normalizeZones(values: IntranetZone[]): IntranetZone[] {
     if (!target || target.kind !== 'domain' || !zone.nameservers.length) throw new ConversionError('INVALID_URI', 'An intranet domain or DNS server is invalid.')
     const nameservers: string[] = []
     for (const value of zone.nameservers) {
-      const server = normalizeDnsServer(value)
+      // `system` is the literal Mihomo resolver. It is intentionally accepted
+      // only here, after routing input has already been structurally validated.
+      const server = value === 'system' ? 'system' : normalizeDnsServer(value)
       if (!server) throw new ConversionError('INVALID_URI', 'An intranet DNS server is invalid.')
       if (!nameservers.includes(server)) nameservers.push(server)
     }
@@ -78,6 +80,8 @@ function normalizeZones(values: IntranetZone[]): IntranetZone[] {
 
 /** Pure rule/DNS planning: traffic order and DNS suffix precedence share one model. */
 export function buildRulePlan(routing: CustomRouting = {}): RulePlan {
+  const directMode = routing.mode === 'direct'
+  const directResolvers = directMode ? SYSTEM_DNS : DIRECT_DNS
   const direct = parseTargets(routing.directDomains ?? [])
   const proxy = parseTargets(routing.proxyDomains ?? [])
   const zones = normalizeZones(routing.intranet ?? [])
@@ -94,7 +98,7 @@ export function buildRulePlan(routing: CustomRouting = {}): RulePlan {
   }]
   const planned: PlannedMatch[] = []
   const policy: Record<string, readonly string[]> = {}
-  for (const local of LOCAL_DOMAINS) policy[dnsKey(local)] = [...LOCAL_DNS]
+  for (const local of LOCAL_DOMAINS) policy[dnsKey(local)] = [...(directMode ? SYSTEM_DNS : LOCAL_DNS)]
   // Explicit intranet resolvers take precedence over the safe local refusal policy.
   for (const zone of zones) policy[`+.${zone.suffix}`] = [...zone.nameservers]
   for (const local of LOCAL_DOMAINS) {
@@ -128,7 +132,7 @@ export function buildRulePlan(routing: CustomRouting = {}): RulePlan {
     if (intranetMatches.some((zone) => overlaps(zone, match))) warn('INTRANET_OVERRIDE', match)
     return true
   })
-  addSection('custom-direct', '用户始终直连：优先于用户代理及服务预设', effectiveDirect.map(targetMatch), 'DIRECT', DIRECT_DNS)
+  addSection('custom-direct', '用户始终直连：优先于用户代理及服务预设', effectiveDirect.map(targetMatch), 'DIRECT', directResolvers)
 
   const effectiveProxy = (match: Match, target?: Target): boolean => {
     if ((target && isLocalTarget(target, routing.bypassCgnat === true)) || LOCAL_DOMAINS.some((local) => covers(local, match))) {
@@ -143,10 +147,13 @@ export function buildRulePlan(routing: CustomRouting = {}): RulePlan {
   }
   addSection('custom-proxy', '用户必须代理：仅代理节点；不支持的流量拒绝，不降级直连', proxy.filter((target) => effectiveProxy(targetMatch(target), target)).map(targetMatch), 'FORCE_PROXY', proxyDns('FORCE_PROXY'))
   for (const preset of RULE_PRESETS) {
-    if (routing.presets?.[preset.id] === false) continue
-    const strict = preset.id === 'openai' || preset.id === 'claude'
+    if ((routing.presets?.[preset.id] ?? DEFAULT_PRESETS[preset.id]) === false) continue
+    // Legacy GitHub and Google / YouTube keep their selectable PROXY group in
+    // standard mode. Every other catalog service uses the fixed proxy group.
+    const strict = directMode || (preset.id !== 'developer' && preset.id !== 'google')
     const destination = strict ? 'FORCE_PROXY' : 'PROXY'
-    addSection(preset.id, `${preset.nameZh}：${strict ? '必须代理；失败不降级直连' : '使用 PROXY 组（可手动选 DIRECT）'}`, preset.rules.filter((match) => effectiveProxy(match)), destination, proxyDns(destination))
+    const presetRules = directMode ? [...preset.rules, ...(DIRECT_MODE_PRESET_ADDITIONS[preset.id] ?? [])] : preset.rules
+    addSection(preset.id, `${preset.nameZh}：${strict ? '必须代理；失败不降级直连' : '使用 PROXY 组（可手动选 DIRECT）'}`, presetRules.filter((match) => effectiveProxy(match)), destination, proxyDns(destination))
   }
   for (const entry of planned) {
     if (!isDomain(entry.match)) continue
@@ -159,10 +166,14 @@ export function buildRulePlan(routing: CustomRouting = {}): RulePlan {
   }
   // Mihomo evaluates DNS policy blocks in order. Keep explicit domains in one
   // continuous block ahead of GeoSite, whose broad categories are fallbacks.
-  policy['geosite:cn'] = [...DIRECT_DNS]
-  policy['geosite:geolocation-!cn'] = proxyDns('PROXY')
-  sections.push({ id: 'mainland', comment: '中国大陆域名 / IP 直连（需要客户端 GeoSite / GeoIP 数据）', rules: ['GEOSITE,CN,DIRECT', 'GEOIP,CN,DIRECT'] })
-  sections.push({ id: 'fallback', comment: '其余流量交给 PROXY；关闭预设不等于直连', rules: ['MATCH,PROXY'] })
+  if (directMode) {
+    sections.push({ id: 'fallback', comment: '其余流量使用当前网络直连', rules: ['MATCH,DIRECT'] })
+  } else {
+    policy['geosite:cn'] = [...DIRECT_DNS]
+    policy['geosite:geolocation-!cn'] = proxyDns('PROXY')
+    sections.push({ id: 'mainland', comment: '中国大陆域名 / IP 直连（需要客户端 GeoSite / GeoIP 数据）', rules: ['GEOSITE,CN,DIRECT', 'GEOIP,CN,DIRECT'] })
+    sections.push({ id: 'fallback', comment: '其余流量交给 PROXY；关闭预设不等于直连', rules: ['MATCH,PROXY'] })
+  }
   const seen = new Set<string>()
   for (const section of sections) section.rules = section.rules.filter((value) => { if (seen.has(value)) return false; seen.add(value); return true })
 
@@ -177,10 +188,12 @@ export function buildRulePlan(routing: CustomRouting = {}): RulePlan {
       'use-hosts': true,
       'use-system-hosts': true,
       'default-nameserver': ['223.5.5.5', '119.29.29.29'],
-      nameserver: [...DIRECT_DNS],
-      'proxy-server-nameserver': [...DIRECT_DNS],
+      nameserver: [...directResolvers],
+      'proxy-server-nameserver': [...directResolvers],
       'proxy-server-nameserver-policy': bootstrapPolicy,
-      'direct-nameserver': [...DIRECT_DNS],
+      'direct-nameserver': [...directResolvers],
+      // Direct mode must follow explicit intranet policies; otherwise a custom
+      // corporate resolver would be silently replaced by `system`.
       'direct-nameserver-follow-policy': true,
       'nameserver-policy': policy,
     },

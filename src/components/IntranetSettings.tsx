@@ -1,4 +1,5 @@
 interface Props {
+  directMode?: boolean
   enabled: boolean
   suffixInput: string
   dnsInput: string
@@ -15,6 +16,7 @@ const inputClass =
   'mt-2 min-h-24 w-full rounded-lg border border-slate-300 bg-white p-3 font-mono text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 dark:border-slate-700 dark:bg-slate-950'
 
 export function IntranetSettings({
+  directMode = false,
   enabled,
   suffixInput,
   dnsInput,
@@ -39,9 +41,13 @@ export function IntranetSettings({
           : 'For company or home services, provide your domain suffixes and internal DNS servers. The config adds dedicated DNS, fake-IP exclusions, and DIRECT routing together.'}
       </p>
       <p className="mt-2 text-xs leading-5 text-slate-600 dark:text-slate-400">
-        {zh
-          ? '.lan、.home.arpa 等本地域名默认不会发往公网 DNS，需填写可达的内网 DNS 后才能解析；.local 的 mDNS 仍由系统处理。'
-          : 'Local zones such as .lan and .home.arpa are not queried through public DNS by default; configure a reachable intranet DNS server to resolve them. The operating system still handles .local mDNS.'}
+        {directMode
+          ? zh
+            ? '默认沿用系统 DNS；需要指定公司 DNS 时可填写服务器地址。内网域名同时直连并排除 fake-IP。'
+            : 'System DNS is used by default. Enter server addresses to override it for your intranet; intranet domains connect directly and bypass fake-IP.'
+          : zh
+            ? '.lan、.home.arpa 等本地域名默认不会发往公网 DNS，需填写可达的内网 DNS 后才能解析；.local 的 mDNS 仍由系统处理。'
+            : 'Local zones such as .lan and .home.arpa are not queried through public DNS by default; configure a reachable intranet DNS server to resolve them. The operating system still handles .local mDNS.'}
       </p>
       <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm font-medium">
         <input
@@ -87,8 +93,12 @@ export function IntranetSettings({
               className="block text-sm font-semibold"
             >
               {zh
-                ? '内网 DNS 服务器（每行一个）'
-                : 'Intranet DNS servers (one per line)'}
+                ? directMode
+                  ? '内网 DNS 服务器（可留空使用系统 DNS）'
+                  : '内网 DNS 服务器（每行一个）'
+                : directMode
+                  ? 'Intranet DNS servers (leave blank for system DNS)'
+                  : 'Intranet DNS servers (one per line)'}
             </label>
             <textarea
               id="intranet-resolvers"
@@ -100,7 +110,7 @@ export function IntranetSettings({
               placeholder={'192.168.1.1\n[fd00::53]:53'}
               aria-invalid={
                 invalidResolverLines.length > 0 ||
-                (incomplete && !dnsInput.trim())
+                (!directMode && incomplete && !dnsInput.trim())
               }
               aria-describedby="intranet-validation intranet-help"
               className={inputClass}
@@ -122,8 +132,12 @@ export function IntranetSettings({
             {incomplete && (
               <p>
                 {zh
-                  ? '请同时填写内网域名后缀和 DNS 服务器。'
-                  : 'Provide both domain suffixes and DNS servers.'}
+                  ? directMode
+                    ? '请填写内网域名后缀。DNS 留空时使用系统 DNS。'
+                    : '请同时填写内网域名后缀和 DNS 服务器。'
+                  : directMode
+                    ? 'Provide domain suffixes. Blank DNS uses system DNS.'
+                    : 'Provide both domain suffixes and DNS servers.'}
               </p>
             )}
             {invalidSuffixLines.length > 0 && (

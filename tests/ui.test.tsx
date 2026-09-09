@@ -71,7 +71,17 @@ describe('界面与分流引导', () => {
     ).toBe('direct.example')
     const stored = window.localStorage.getItem('toclash.routing.v1')!
     expect(stored).not.toContain('00000000')
-    expect(Object.keys(JSON.parse(stored))).toHaveLength(6)
+    expect(Object.keys(JSON.parse(stored)).sort()).toEqual([
+      'bypassCgnat',
+      'directInput',
+      'intranetDnsInput',
+      'intranetEnabled',
+      'intranetSuffixInput',
+      'mode',
+      'presets',
+      'proxyInput',
+      'version',
+    ])
     first.unmount()
     render(<App />)
     expect(
@@ -171,7 +181,7 @@ describe('界面与分流引导', () => {
     )
   })
 
-  it.each(RULE_PRESETS)(
+  it.each(RULE_PRESETS.filter((preset) => preset.defaultEnabled))(
     '$nameZh 预设默认启用，关闭只移除专用规则',
     (preset) => {
       render(<App />)
@@ -379,7 +389,7 @@ describe('界面与分流引导', () => {
     for (const preset of RULE_PRESETS)
       expect(
         (screen.getByLabelText(preset.nameEn) as HTMLInputElement).checked,
-      ).toBe(true)
+      ).toBe(preset.defaultEnabled)
     expect(
       (screen.getByLabelText(/Bypass shared addresses/) as HTMLInputElement)
         .checked,

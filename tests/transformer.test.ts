@@ -29,6 +29,20 @@ describe('Mihomo output', () => {
     expect(yaml).toContain('# Codex / OpenAI：必须代理')
     expect(parse(yaml).rules.at(-1)).toBe('MATCH,PROXY')
   })
+  it('builds a default-direct configuration with only a fixed proxy group', () => {
+    const node = parseLink(`vless://${uuid}@example.com:443#Only`).node
+    const config = buildMihomoConfig([node], true, { mode: 'direct' })
+    expect(config.ipv6).toBe(false)
+    expect(config['proxy-groups']).toEqual([{ name: 'FORCE_PROXY', type: 'select', proxies: ['Only'] }])
+    expect(config.rules).toEqual(expect.arrayContaining(['DOMAIN-SUFFIX,google.com,FORCE_PROXY', 'MATCH,DIRECT']))
+    expect(config.rules).not.toEqual(expect.arrayContaining(['GEOSITE,CN,DIRECT', 'GEOIP,CN,DIRECT', 'MATCH,PROXY']))
+    expect(config.dns).toMatchObject({
+      nameserver: ['system'],
+      'proxy-server-nameserver': ['system'],
+      'direct-nameserver': ['system'],
+      'direct-nameserver-follow-policy': true,
+    })
+  })
   it('validates required schema fields', () => expect(() => validateNode({ name: 'x', type: 'vless', server: 'x', port: 443 })).toThrow('UUID'))
   it.each<ProxyNode>([
     { name: '', type: 'http', server: 'example.com', port: 80 },

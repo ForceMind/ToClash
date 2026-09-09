@@ -1,20 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { ConversionError } from '../src/core/model/proxy'
-import { DIRECT_DNS, LOCAL_DNS, LOCAL_IP_RULES, proxyDns } from '../src/core/rules/defaults'
+import { DIRECT_DNS, LOCAL_DNS, LOCAL_IP_RULES, proxyDns, SYSTEM_DNS } from '../src/core/rules/defaults'
 import { buildRulePlan } from '../src/core/rules/plan'
-import { RULE_PRESETS } from '../src/core/rules/presets'
+import { DEFAULT_PRESETS, PRESET_CATEGORIES, RULE_PRESETS } from '../src/core/rules/presets'
 import type { CustomRouting, PresetId, RulePlan } from '../src/core/rules/types'
 
 const rulesOf = (plan: RulePlan) => plan.sections.flatMap(({ rules }) => rules)
 const policyOf = (plan: RulePlan) => plan.dns['nameserver-policy'] as Record<string, string[]>
-const noPresets: Record<PresetId, boolean> = { openai: false, claude: false, developer: false, google: false }
+const legacyPresets = RULE_PRESETS.filter(({ defaultEnabled }) => defaultEnabled)
+const noPresets = Object.fromEntries(RULE_PRESETS.map(({ id }) => [id, false])) as Record<PresetId, boolean>
 
 describe('service rule presets', () => {
   it.each(Array.from({ length: 16 }, (_, mask) => mask))('supports every preset combination (mask %s)', (mask) => {
-    const presets = Object.fromEntries(RULE_PRESETS.map(({ id }, index) => [id, (mask & (1 << index)) !== 0]))
+    const presets = Object.fromEntries(legacyPresets.map(({ id }, index) => [id, (mask & (1 << index)) !== 0]))
     const plan = buildRulePlan({ presets })
     const rules = rulesOf(plan)
-    for (const [index, preset] of RULE_PRESETS.entries()) {
+    for (const [index, preset] of legacyPresets.entries()) {
       const enabled = (mask & (1 << index)) !== 0
       const strict = preset.id === 'openai' || preset.id === 'claude'
       for (const { type, value } of preset.rules) {
@@ -28,7 +29,7 @@ describe('service rule presets', () => {
     expect(new Set(rules).size).toBe(rules.length)
   })
 
-  it('enables all presets by default and uses exact matching for shared service domains', () => {
+  it('enables the legacy presets by default and uses exact matching for shared service domains', () => {
     const rules = rulesOf(buildRulePlan())
     expect(rules).toEqual(expect.arrayContaining([
       'DOMAIN-SUFFIX,oaistatsig.com,FORCE_PROXY', 'DOMAIN-SUFFIX,workos.com,FORCE_PROXY',
@@ -38,6 +39,40 @@ describe('service rule presets', () => {
     ]))
     expect(rules).not.toContain('DOMAIN-SUFFIX,cloudflare.com,FORCE_PROXY')
     expect(rules).not.toContain('DOMAIN-SUFFIX,imgix.net,FORCE_PROXY')
+    expect(rules).not.toContain('DOMAIN-SUFFIX,x.com,FORCE_PROXY')
+  })
+
+  it('derives defaults and category labels from the catalogue', () => {
+    expect(Object.fromEntries(RULE_PRESETS.map(({ id, defaultEnabled }) => [id, defaultEnabled]))).toEqual(DEFAULT_PRESETS)
+    expect(RULE_PRESETS).toHaveLength(29)
+    expect(new Set(RULE_PRESETS.map(({ id }) => id)).size).toBe(RULE_PRESETS.length)
+    expect(new Set(PRESET_CATEGORIES.map(({ id }) => id))).toEqual(new Set(['ai', 'social', 'media', 'work', 'developer', 'gaming']))
+    expect(RULE_PRESETS.find(({ id }) => id === 'threads')?.rules).toContainEqual({ type: 'DOMAIN-SUFFIX', value: 'threads.com' })
+  })
+
+  it.each(RULE_PRESETS)('honors the on/off rule and DNS policy for $id', (preset) => {
+    const enabled = buildRulePlan({ presets: { [preset.id]: true } })
+    const disabled = buildRulePlan({ presets: { ...DEFAULT_PRESETS, [preset.id]: false } })
+    const destination = preset.defaultEnabled && !['openai', 'claude'].includes(preset.id) ? 'PROXY' : 'FORCE_PROXY'
+    for (const { type, value } of preset.rules) {
+      const rule = `${type},${value},${destination}`
+      const key = type === 'DOMAIN' ? value : `+.${value}`
+      expect(rulesOf(enabled)).toContain(rule)
+      expect(policyOf(enabled)[key]).toEqual(proxyDns(destination))
+      expect(rulesOf(disabled)).not.toContain(rule)
+      expect(policyOf(disabled)[key]).toBeUndefined()
+    }
+  })
+
+  it('force-proxies every selected non-legacy service without adding broad shared CDNs', () => {
+    const selected = Object.fromEntries(RULE_PRESETS.filter(({ defaultEnabled }) => !defaultEnabled).map(({ id }) => [id, true]))
+    const rules = rulesOf(buildRulePlan({ presets: selected }))
+    for (const preset of RULE_PRESETS.filter(({ defaultEnabled }) => !defaultEnabled)) {
+      for (const { type, value } of preset.rules) expect(rules).toContain(`${type},${value},FORCE_PROXY`)
+    }
+    for (const forbidden of ['cloudfront.net', 'amazonaws.com', 'cloudflare.com', 'akamaized.net', 'fastly.net']) {
+      expect(rules).not.toContain(`DOMAIN-SUFFIX,${forbidden},FORCE_PROXY`)
+    }
   })
 
   it('closes UDP-incompatible strict proxy matches with an immediately adjacent rejection', () => {
@@ -116,6 +151,55 @@ describe('routing and DNS precedence', () => {
     try { buildRulePlan({ proxyDomains: [value] }) } catch (error) {
       expect((error as Error).message).not.toContain(value)
     }
+  })
+})
+
+describe('default-direct routing', () => {
+  it('uses system DNS and only force-proxies enabled preset services', () => {
+    const plan = buildRulePlan({
+      mode: 'direct',
+      intranet: [{ suffix: 'corp.example', nameservers: ['10.0.0.53'] }],
+    })
+    const rules = rulesOf(plan)
+    const policy = policyOf(plan)
+
+    expect(rules.at(-1)).toBe('MATCH,DIRECT')
+    expect(rules.some((value) => value.startsWith('GEOSITE,') || value.startsWith('GEOIP,'))).toBe(false)
+    expect(rules.some((value) => value.endsWith(',PROXY'))).toBe(false)
+    for (const preset of legacyPresets) {
+      for (const { type, value } of preset.rules) expect(rules).toContain(`${type},${value},FORCE_PROXY`)
+    }
+    expect(rules).toEqual(expect.arrayContaining([
+      'DOMAIN,cdn.openaimerge.com,FORCE_PROXY',
+      'DOMAIN-SUFFIX,claudeusercontent.com,FORCE_PROXY',
+      'DOMAIN-SUFFIX,google.com.hk,FORCE_PROXY',
+      'DOMAIN-SUFFIX,google.co.jp,FORCE_PROXY',
+      'DOMAIN-SUFFIX,googleusercontent.com,FORCE_PROXY',
+      'DOMAIN-SUFFIX,youtube-nocookie.com,FORCE_PROXY',
+    ]))
+    expect(Object.keys(policy).some((key) => key.startsWith('geosite:'))).toBe(false)
+    expect(policy['+.local']).toEqual(SYSTEM_DNS)
+    expect(policy['+.corp.example']).toEqual(['udp://10.0.0.53:53'])
+    expect(plan.dns).toMatchObject({
+      nameserver: SYSTEM_DNS,
+      'proxy-server-nameserver': SYSTEM_DNS,
+      'direct-nameserver': SYSTEM_DNS,
+      'direct-nameserver-follow-policy': true,
+    })
+  })
+
+  it('omits disabled preset coverage and force-proxies selected new services', () => {
+    const plan = buildRulePlan({ mode: 'direct', presets: { google: false, x: true } })
+    expect(rulesOf(plan)).not.toContain('DOMAIN-SUFFIX,googleusercontent.com,FORCE_PROXY')
+    expect(policyOf(plan)['+.googleusercontent.com']).toBeUndefined()
+    expect(rulesOf(plan)).toContain('DOMAIN-SUFFIX,x.com,FORCE_PROXY')
+    expect(policyOf(plan)['+.x.com']).toEqual(proxyDns('FORCE_PROXY'))
+  })
+
+  it('accepts the exact system resolver for an intranet zone', () => {
+    const plan = buildRulePlan({ mode: 'direct', intranet: [{ suffix: 'corp.example', nameservers: ['system'] }] })
+    expect(policyOf(plan)['+.corp.example']).toEqual(SYSTEM_DNS)
+    expect(plan.dns['proxy-server-nameserver-policy']).toEqual(expect.objectContaining({ '+.corp.example': [...SYSTEM_DNS] }))
   })
 })
 

@@ -50,6 +50,13 @@ describe('explicit intranet DNS', () => {
     expect(result.zones).toEqual([])
   })
 
+  it('uses the Mihomo system resolver for a suffix with no DNS input when requested', () => {
+    expect(parseIntranetConfig('corp.example', '', true)).toEqual({
+      zones: [{ suffix: 'corp.example', nameservers: ['system'] }],
+      invalidSuffixLines: [], invalidResolverLines: [], incomplete: false,
+    })
+  })
+
   it('deduplicates and maps a shared resolver list to each suffix', () => {
     expect(parseIntranetConfig('Corp.example\n\n+.corp.example\nlab.example', '10.0.0.53\n\nudp://10.0.0.53:53')).toEqual({
       zones: [{ suffix: 'corp.example', nameservers: ['udp://10.0.0.53:53'] }, { suffix: 'lab.example', nameservers: ['udp://10.0.0.53:53'] }],

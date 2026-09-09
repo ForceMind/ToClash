@@ -1,4 +1,10 @@
-export type PresetId = 'openai' | 'claude' | 'developer' | 'google'
+export type PresetId =
+  | 'openai' | 'claude' | 'developer' | 'google'
+  | 'x' | 'tiktok' | 'facebook' | 'instagram' | 'threads' | 'reddit' | 'telegram' | 'whatsapp' | 'discord' | 'linkedin'
+  | 'netflix' | 'disney' | 'primevideo' | 'spotify' | 'twitch'
+  | 'perplexity' | 'grok' | 'microsoft' | 'apple' | 'notion' | 'slack' | 'zoom' | 'dropbox' | 'steam' | 'epic'
+
+export type PresetCategory = 'ai' | 'social' | 'media' | 'work' | 'developer' | 'gaming'
 
 export interface IntranetZone {
   suffix: string
@@ -6,6 +12,8 @@ export interface IntranetZone {
 }
 
 export interface CustomRouting {
+  /** standard preserves the existing mainland split; direct only proxies selected services. */
+  mode?: 'standard' | 'direct'
   directDomains?: string[]
   proxyDomains?: string[]
   presets?: Partial<Record<PresetId, boolean>>
@@ -20,8 +28,10 @@ export interface DomainRule {
 
 export interface RulePreset {
   id: PresetId
+  category: PresetCategory
   nameZh: string
   nameEn: string
+  defaultEnabled: boolean
   rules: readonly DomainRule[]
 }
 

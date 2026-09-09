@@ -51,5 +51,8 @@ export function applyCommonParams(node: ProxyNode, params: URLSearchParams, allo
 }
 
 export function validateUuid(uuid: string, protocol: string): void {
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid)) throw new ConversionError('INVALID_UUID', `Invalid ${protocol} UUID.`, protocol)
+  // VLESS / VMess use this as a 128-bit credential. Providers may issue a
+  // value outside the RFC UUID version and variant ranges, so validate only
+  // the unambiguous hexadecimal shape and preserve the credential verbatim.
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid)) throw new ConversionError('INVALID_UUID', `Invalid ${protocol} UUID.`, protocol)
 }

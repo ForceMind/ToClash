@@ -158,9 +158,9 @@ test('real browser conversion, privacy, settings, download and keyboard workflow
     })),
   ).toEqual({ local: 0, session: 0 })
   expect(
-    requests.every((url) => url.startsWith('http://127.0.0.1:4173/')),
+    requests.every((url) => url.startsWith(`${testInfo.project.use.baseURL}/`)),
   ).toBe(true)
-  expect(page.url()).toBe('http://127.0.0.1:4173/')
+  expect(page.url()).toBe(`${testInfo.project.use.baseURL}/`)
   expect(errors).toEqual([])
 })
 

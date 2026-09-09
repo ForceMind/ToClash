@@ -28,7 +28,7 @@ export function normalizeDnsServer(input: string): string | null {
   }
 }
 
-export function parseIntranetConfig(suffixInput: string, dnsInput: string): IntranetResult {
+export function parseIntranetConfig(suffixInput: string, dnsInput: string, useSystemDefault = false): IntranetResult {
   const suffixes = new Set<string>()
   const nameservers = new Set<string>()
   const invalidSuffixLines: number[] = []
@@ -46,6 +46,7 @@ export function parseIntranetConfig(suffixInput: string, dnsInput: string): Intr
     if (!server) invalidResolverLines.push(index + 1)
     else nameservers.add(server)
   })
+  if (useSystemDefault && suffixes.size > 0 && nameservers.size === 0 && invalidResolverLines.length === 0) nameservers.add('system')
   const incomplete = suffixes.size === 0 || nameservers.size === 0
   return {
     zones: incomplete || invalidSuffixLines.length || invalidResolverLines.length

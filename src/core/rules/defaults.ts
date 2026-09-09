@@ -1,6 +1,7 @@
 import type { DomainRule } from './types'
 
 export const DIRECT_DNS = ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'] as const
+export const SYSTEM_DNS = ['system'] as const
 export const LOCAL_DNS = ['rcode://refused'] as const
 export const LOCAL_DOMAINS: readonly DomainRule[] = [
   { type: 'DOMAIN-SUFFIX', value: 'localhost' },

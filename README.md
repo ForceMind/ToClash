@@ -1,141 +1,124 @@
 # ToClash
 
-在浏览器本地将代理链接转换为 Clash / Mihomo 配置。
+把已有的代理链接转换成 Clash / Mihomo 配置文件。打开网页、粘贴链接、下载配置，再导入你的代理客户端即可。
 
-ToClash 是一个隐私优先的纯前端单页工具。每行粘贴一个代理 URI，即可获得稳定、可导入的 Mihomo YAML；某一条链接损坏不会影响批次中的其他链接。
+**[打开网站](https://forcemind.github.io/ToClash/)**
 
-> 所有转换均在浏览器本地完成。ToClash 永远不会上传你的代理链接。
+ToClash 不提供代理节点，也不会替你连接 VPN。请先准备可用的代理链接，以及支持 Mihomo 配置的客户端。
 
-**在线使用：** <https://forcemind.github.io/ToClash/>
+当前版本：**v0.3.3**。支持默认直连模式和 29 项服务选择，详见[版本说明](docs/RELEASE_v0.3.3.md)。
 
-填写时先看[表单填写指南](docs/FILLING_GUIDE.md)，规则细节看[规则与 DNS 使用指南](docs/RULES.md)。
+## 第一次使用
 
-## 功能
+1. 在“代理链接”中粘贴链接，每行一条。
+2. 保持“完整配置”，按网络情况选择模式和需要代理的服务。
+3. 没有特殊网站或内网需求时，两个“可选”区域都可以留空。
+4. 点击“转换”。若出现无效行提示，修正对应内容后继续。
+5. 点击“下载 YAML”，在 Clash / Mihomo 客户端中导入并启用下载的文件。
 
-- 支持 VLESS、VMess、Trojan、Shadowsocks、SOCKS5、HTTP 和 HTTPS
-- 支持 TLS、WebSocket、gRPC、HTTP/H2、Reality 和 VLESS XHTTP
-- 输出包含策略组、fake-ip DNS 和常用分流规则的完整 Mihomo 配置，或仅输出 `proxies:`
-- 支持 Unicode 名称、IPv4/IPv6、节点重名处理、批量错误与警告
-- 本地复制和 YAML 下载；无后端、无统计、无转换 API；自定义分流和内网 DNS 在浏览器本地保存
-- 简体中文默认界面，可切换 English；响应式明暗主题
-- 提供“始终直连”和“始终代理”的自定义网站分流引导，支持域名或完整网址
-- 提供 OpenAI、Claude、开发者服务、Google / YouTube 四类可切换规则预设
-- 可填写内网域名后缀和内网 DNS，统一生成 DNS 分流、fake-IP 排除及直连规则
+网页只负责生成配置，真正的代理连接发生在客户端中。点击“示例”可以用演示链接看看输出，但示例节点不能用于上网。
 
-开发中的规则增强版本、验收结果和已知限制见[验证记录](docs/VALIDATION.md)。本地工作区更新不代表线上版本已更新。
+## 当前网络已能直接访问国际互联网
 
-## 支持范围
+选择“网络模式 → 默认直连，仅指定服务代理”。展开“服务规则预设”，只勾选需要使用代理出口 IP 的服务；例如勾选 Codex / OpenAI、Claude 和 Google / YouTube，取消开发者服务。Google / YouTube 包含 Gmail；登录和验证域名可能被多个服务共用。
 
-| 输入 | 主要支持 |
-| --- | --- |
-| VLESS | TLS、Reality、WS、gRPC、HTTP/H2、XHTTP、flow、ALPN、fingerprint |
-| VMess | Base64 JSON、TLS、WS、gRPC、HTTP/H2 |
-| Trojan | TLS、WS、gRPC、HTTP/H2 |
-| Shadowsocks | SIP002、legacy Base64、常用插件元数据 |
-| SOCKS / SOCKS5 | 用户名密码、TLS 参数 |
-| HTTP / HTTPS | 用户名密码、SNI、证书校验参数 |
+其他网站无需填写，默认直连。需要额外代理的网站填入“始终代理”。公司内网启用“内网 DNS 分流”并填写域名后缀，DNS 留空使用系统 DNS，也可以填写实际公司 DNS 地址。内网和显式直连规则优先，出现覆盖提示时核对冲突。
 
-无法安全映射到 Mihomo 的 URI 参数会显示警告，不会静默丢弃。
+生成结果以 `MATCH,DIRECT` 结束，不包含国内外 GeoSite / GeoIP 分流。`FORCE_PROXY` 只包含节点，不含 `DIRECT` 或 `AUTO`；导入客户端后手动选择出口，不会自动切换节点。普通域名和节点域名默认使用系统 DNS，需要代理的域名使用经过该代理出口的公共 DoH。
 
-XHTTP 支持 URI 中的 `x_padding_bytes` / `x-padding-bytes`，以及 `extra` JSON 内的 `xPaddingBytes`，统一输出为 Mihomo `xhttp-opts.x-padding-bytes`。显式参数与 `extra` 重复时以显式参数为准。
+常规模式保留原来的国内直连、其他代理和公共 DNS 行为。规则只作用于交给 Mihomo 的流量；公司 DNS 和服务实际出口仍需在你的客户端中验证。
 
-完整配置默认包含 `PROXY` 手动选择组、`AUTO` 自动选择组、仅代理的 `FORCE_PROXY` 组，以及局域网直连、可选内网规则、用户规则、服务预设、国内直连和 `MATCH,PROXY` 兜底。`AUTO` 的测速发生在用户导入配置后的 Mihomo 中，网页不会连接节点。
+## 选择更多海外服务（v0.3.3）
 
-用户直连优先于用户代理和服务预设，但不能覆盖更优先的本机 / 局域网与内网保护。用户“始终代理”和 AI 预设使用 `FORCE_PROXY`；该组没有 `DIRECT`，对应规则后附同条件 `REJECT`，避免不支持 UDP 时落入后续直连规则。普通 `PROXY` 仍允许手动选择 `DIRECT`。
+展开“服务规则预设”，按 AI、社交、影音、办公、开发、游戏分类选择，也可以搜索服务名。新增 X / Twitter、TikTok 等服务默认关闭，按需勾选即可。分类批量操作只影响当前显示的服务，搜索不会清除已有勾选。
 
-域名规则覆盖自身及子域名；网址只提取主机，不按路径分流。IPv4 / IPv6 转换为精确 IP 规则。任何无效设置都会暂停完整配置导出，修正后自动恢复；切换为“仅 proxies”不应用分流设置。“清空节点和结果”保留分流设置；“重置已保存设置”单独清除自定义及内网配置并恢复规则默认值。详见[规则与 DNS 使用指南](docs/RULES.md)。
+如果你当前网络可以直接上网，先选择“默认直连，仅指定服务代理”，再勾选需要使用自己 VPN 出口的服务。新增服务包含主页及常用登录、图片、视频域名，生成的代理规则与 DNS 同步。服务间共用的域名可能同时影响其他产品；这类影响和域名来源见[服务目录](docs/SERVICE_CATALOG.md)。
 
-## 本地开发
+已有的四项预设和之前保存的勾选保持不变。Google / YouTube 暂时保留组合项，包含 Gmail；开发者服务 / GitHub 也保留原有名称。服务清单不是对所有海外网站的穷尽，额外域名仍可填写“始终代理”。
 
-需要 Node.js 20 或更高版本；推荐 Node.js 22（本轮验证版本）。Node.js 26 的实验性 Web Storage 与当前 Vitest / jsdom 存在冲突；测试请使用 Node.js 22，或临时设置 `NODE_OPTIONS=--no-experimental-webstorage`。
+## 自定义网站分流下面写什么？
 
-```bash
-npm install
-npm run dev
-```
+**没有额外要求，两栏都留空。** OpenAI、Claude、GitHub、Google / YouTube 已有服务预设，通常不用重复填写。
 
-质量检查：
+| 输入框 | 填什么 | 不需要时 |
+| --- | --- | --- |
+| 始终直连 | 明确希望不经过代理的网站域名或 IP | 留空 |
+| 始终代理 | 明确希望必须经过代理的网站域名或 IP | 留空 |
 
-```bash
-npm run lint
-npm run typecheck
-npm run test
-npm run test:coverage
-npm run build
-npx playwright install chromium
-npm run test:browser
-```
-
-生产构建输出到 `dist/`。
-
-规则和 DNS 变更还可使用本机可信 Mihomo 及已准备的 GeoSite / GeoIP 数据验证：
-
-```bash
-npm run test:mihomo -- /path/to/mihomo /path/to/geodata
-npm run test:mihomo:dns -- /path/to/mihomo /path/to/geodata
-```
-
-第一项只检查配置可加载；第二项实际验证解析策略和模拟节点连接，全程使用回环地址上的模拟上游，不修改系统 DNS/TUN。详见[验证记录](docs/VALIDATION.md)。
-
-## 部署
-
-### GitHub Pages
-
-仓库包含 `.github/workflows/deploy-pages.yml`。推送到 `main` 后会自动构建并发布 `dist/`。仓库 Pages 的 Source 必须选择 **GitHub Actions**。
+每行一个，也可以填写完整网址。以下只是格式示例：
 
 ```text
-https://forcemind.github.io/ToClash/
+example.com
+https://app.example.net/page
+192.0.2.10
 ```
 
-### Cloudflare Pages
+填写域名会包含它的子域名；填写网址只按网站域名分流，不区分页面路径。不要粘贴 `DOMAIN-SUFFIX,...` 或整个 YAML。
 
-```text
-Build command: npm run build
-Build output directory: dist
-Environment variable: NODE_VERSION=22
+公司网站如果需要公司 DNS，请填写下方内网区域，不必再重复填“始终直连”。
+
+## 企业 / 家庭内网 DNS 下面写什么？
+
+**不访问内网，保持关闭，两栏留空。** 需要指定 DNS 才能打开公司或家庭网站时，勾选“启用内网 DNS 分流”，然后填写：
+
+| 输入框 | 填什么 | 格式示例 |
+| --- | --- | --- |
+| 内网域名后缀 | 需要由内网 DNS 解析的域名，每行一个 | `corp.example` |
+| 内网 DNS 服务器 | 网络管理员或你的路由器配置中确认的 DNS IP | `192.0.2.53` |
+
+**示例不是你的实际配置，不能直接照抄使用。** 不知道 DNS 地址时，先向网络管理员确认。
+
+域名不要加 `https://`、路径或端口。所有填写的域名共用下面这组 DNS。工具会一起生成专用 DNS、真实地址解析和直连规则，无需自己编辑三处配置。
+
+你仍需处在可访问内网的网络中，或已连接相应 VPN。详细格式和特殊情况见[表单填写指南](docs/FILLING_GUIDE.md)。
+
+## 填写的内容会保存吗？
+
+- **自动保存：** 网络模式、服务预设、CGNAT、自定义直连 / 代理内容、内网 DNS 开关、内网域名和 DNS 地址。
+- **保存位置：** 当前浏览器的本地存储。下次用同一浏览器打开同一站点会恢复。
+- **不自动保存：** 代理链接、生成的 YAML、语言、主题和输出格式。
+
+换浏览器或站点地址不会自动迁移；清除网站数据会删除保存内容。若页面提示保存失败，请先检查浏览器的网站存储权限。
+
+“清空节点和结果”会保留分流设置；“重置已保存设置”会清除自定义及内网配置，并恢复服务规则默认值。
+
+ToClash 在浏览器中完成转换，不把表单内容上传到 GitHub、Cloudflare 或转换服务器。保存的数据没有加密，同一站点的脚本可以访问它。详见[隐私声明](PRIVACY.md)。
+
+## 常见问题
+
+### 为什么同一个域名有代理和 REJECT 两行？
+
+例如：
+
+```yaml
+- DOMAIN-SUFFIX,claude.com,FORCE_PROXY
+- DOMAIN-SUFFIX,claude.com,REJECT
 ```
 
-Vite 使用相对资源路径，因此同一构建可部署到 GitHub Pages 的 `/ToClash/` 子路径或自定义域名根路径。应用只有首页，不需要 `_redirects`。公共界面不显示仓库推广链接；规则预设中的 GitHub 指需要分流的开发者服务。
+第一行要求这个域名及其子域名走代理。正常匹配后，就不会再执行第二行。
 
-#### Cloudflare Direct Upload
+第二行用于拦住继续往下匹配的请求。例如 UDP 请求遇到不支持 UDP 的代理时，Mihomo 会继续查找下一条规则；这里会拒绝连接，避免落入后面的直连规则。
 
-Cloudflare Direct Upload 只能上传预先构建的静态资源，不能上传项目源码包。先运行：
+这不表示“先代理再拦截”，也不是“代理超时后执行第二行”。一般无需手动删除。详见[规则说明](docs/RULES.md#为什么同一个域名有-force_proxy-和-reject-两行)。
 
-```bash
-npm ci
-npm run build
-```
+### 关闭某个服务预设，就会直连吗？
 
-然后在控制台拖入 `dist/` 文件夹，或把 **`dist/` 里面的内容**压缩为 ZIP 后上传。ZIP 根目录必须直接包含：
+默认直连模式下，关闭后通常直连，但仍受其他预设中的重叠域名和自定义规则影响。常规模式下仍可能走默认代理。明确需要直连时，将域名填到“始终直连”。
 
-```text
-index.html
-favicon.svg
-assets/
-```
+### “完整配置”和“仅 proxies”选哪个？
 
-不要上传 `ToClash-v0.3.0-source.zip`；它用于开发，根目录的源码 `index.html` 会引用 `/src/main.tsx`，无法由 Direct Upload 自动编译。发布包使用 `ToClash-v0.3.0-pages.zip`。
+一般选“完整配置”，它包含节点和分流设置。“仅 proxies”只导出节点，适合自己维护其他配置的人，内网 DNS 和网站分流不会包含在其中。
 
-如果浏览器报模块 MIME 类型错误，首先确认上传的是构建产物，并在开发者工具中检查 `assets/*.js` 返回 JavaScript 文件（不是源码、404 或 HTML）。不要通过关闭 MIME 校验处理。
+### 转换成功，为什么网站还是打不开？
 
-## 架构
+先确认已经在客户端导入并启用新配置，再检查代理节点和内网 / VPN 是否可用。转换成功表示生成了配置，不代表节点或公司网络已经连通。
 
-协议 parser 只生成统一的 `ProxyNode`，不会直接生成 YAML。纯函数规则规划器将用户设置与预设统一编译为规则和 DNS；Mihomo transformer 校验并映射节点、组和规则；serializer 使用 YAML AST 编码并加入分类注释。详见[架构文档](docs/ARCHITECTURE.md)与[验证记录](docs/VALIDATION.md)。
+## 更多说明
 
-## 隐私与安全
+- [表单填写指南](docs/FILLING_GUIDE.md)：每个输入框的格式、保存和清空操作。
+- [规则与 DNS 说明](docs/RULES.md)：规则顺序、代理组和冲突处理。
+- [开发与部署](docs/DEVELOPMENT.md)：本地启动、协议支持、GitHub Pages 和 Cloudflare Pages 上传。
+- [架构说明](docs/ARCHITECTURE.md) · [验证记录](docs/VALIDATION.md) · [更新记录](CHANGELOG.md)
+- [贡献指南](CONTRIBUTING.md) · [安全政策](SECURITY.md) · [Apache 2.0 许可](LICENSE)
 
-代理链接和生成的 YAML 仅存在于 React 组件内存中，不写入 URL、LocalStorage 或日志。自定义网站分流和内网 DNS 使用 LocalStorage 自动保存。剪贴板和文件下载仅由用户主动触发。请勿在 Issue 中提交真实节点或凭据，详见[隐私声明](PRIVACY.md)和[安全政策](SECURITY.md)。
-
-## 项目范围
-
-ToClash 是格式转换器，不是 VPN 客户端、代理服务器、订阅服务、测速工具、账户系统或节点市场。
-
-生成配置不保证账号验证成功、节点可达或应用一定经过 Mihomo。浏览器自带 DoH、系统 mDNS、VPN 路由和未被代理接管的流量仍需在客户端环境中处理；ToClash 不修改这些设置。国内分流依赖客户端可用的 GeoSite / GeoIP 数据。普通“始终直连”不等于自动排除 fake-IP，内网访问请使用专门的内网设置。
-
-## 贡献与许可
-
-欢迎提交测试、文档、错误修复和范围明确的协议兼容改进，参见[贡献指南](CONTRIBUTING.md)。本项目依据 Apache License 2.0 授权，详见 [LICENSE](LICENSE)。
-
----
-
-English summary: ToClash converts common proxy URIs to Mihomo / Clash YAML entirely in your browser. No input is uploaded. Custom routing and intranet DNS are persisted locally; proxy links are not. The interface defaults to Simplified Chinese and can switch to English.
+文档只使用通用示例，不收录用户的公司域名、内网地址或节点凭据。

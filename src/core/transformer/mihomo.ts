@@ -76,11 +76,13 @@ export function buildMihomoConfig(nodes: ProxyNode[], full: boolean, routing: Cu
   if (!full) return { proxies }
   if (!nodes.length) throw new ConversionError('MISSING_FIELD', 'A full configuration requires at least one valid proxy node.')
   const names = namedNodes.map(({ name }) => name)
-  const groups: ProxyGroup[] = [
-    { name: 'PROXY', type: 'select', proxies: ['AUTO', 'DIRECT', ...names] },
-    { name: 'AUTO', type: 'url-test', proxies: names, url: 'https://www.gstatic.com/generate_204', interval: 300 },
-    { name: 'FORCE_PROXY', type: 'select', proxies: ['AUTO', ...names] },
-  ]
+  const groups: ProxyGroup[] = routing.mode === 'direct'
+    ? [{ name: 'FORCE_PROXY', type: 'select', proxies: names }]
+    : [
+        { name: 'PROXY', type: 'select', proxies: ['AUTO', 'DIRECT', ...names] },
+        { name: 'AUTO', type: 'url-test', proxies: names, url: 'https://www.gstatic.com/generate_204', interval: 300 },
+        { name: 'FORCE_PROXY', type: 'select', proxies: ['AUTO', ...names] },
+      ]
   validateGroupReferences(groups, names)
   const plan = buildRulePlan(routing)
   return {
@@ -88,6 +90,7 @@ export function buildMihomoConfig(nodes: ProxyNode[], full: boolean, routing: Cu
     'allow-lan': false,
     mode: 'rule',
     'log-level': 'info',
+    ...(routing.mode === 'direct' ? { ipv6: false } : {}),
     proxies,
     'proxy-groups': groups,
     dns: plan.dns,

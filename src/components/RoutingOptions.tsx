@@ -1,4 +1,5 @@
 interface Props {
+  directMode?: boolean
   direct: string
   proxy: string
   directInvalid: number[]
@@ -14,6 +15,7 @@ const inputClass =
   'mt-2 min-h-28 w-full rounded-lg border border-slate-300 bg-white p-3 font-mono text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 dark:border-slate-700 dark:bg-slate-950'
 
 export function RoutingOptions({
+  directMode = false,
   direct,
   proxy,
   directInvalid,
@@ -84,9 +86,13 @@ export function RoutingOptions({
             {zh ? '第 2 步：始终代理' : 'Step 2: Always proxy'}
           </label>
           <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-400">
-            {zh
-              ? '使用 FORCE_PROXY，只能选择代理节点或 AUTO，不提供 DIRECT 选项。'
-              : 'Use FORCE_PROXY, which offers only proxy nodes or AUTO, never DIRECT.'}
+            {directMode
+              ? zh
+                ? '使用 FORCE_PROXY，只提供节点供手动选择，不提供 DIRECT 或 AUTO。'
+                : 'Use FORCE_PROXY with manually selected nodes only; no DIRECT or AUTO.'
+              : zh
+                ? '使用 FORCE_PROXY，只能选择代理节点或 AUTO，不提供 DIRECT 选项。'
+                : 'Use FORCE_PROXY, which offers only proxy nodes or AUTO, never DIRECT.'}
           </p>
           <textarea
             id="proxy-domains"
@@ -119,9 +125,13 @@ export function RoutingOptions({
         </div>
       </div>
       <p className="mt-3 text-xs leading-5 text-slate-600 dark:text-slate-400">
-        {zh
-          ? '优先级：本机 / 内网直连 → 自定义直连 → 自定义代理 → 服务预设 → 中国大陆直连 → PROXY 兜底。发生覆盖时直连优先。规则仅约束交给 Mihomo 的流量，不是系统级防泄漏开关。'
-          : 'Priority: local / intranet direct → custom direct → custom proxy → service presets → mainland China direct → PROXY fallback. Direct wins overlaps. Rules apply only to traffic handled by Mihomo; they are not a system-wide kill switch.'}
+        {directMode
+          ? zh
+            ? '优先级：本机 / 内网直连 → 自定义直连 → 自定义代理 → 服务预设 → 其余直连。发生覆盖时直连优先。规则仅约束交给 Mihomo 的流量。'
+            : 'Priority: local / intranet direct → custom direct → custom proxy → service presets → direct fallback. Direct wins overlaps. Rules apply only to traffic handled by Mihomo.'
+          : zh
+            ? '优先级：本机 / 内网直连 → 自定义直连 → 自定义代理 → 服务预设 → 中国大陆直连 → PROXY 兜底。发生覆盖时直连优先。规则仅约束交给 Mihomo 的流量，不是系统级防泄漏开关。'
+            : 'Priority: local / intranet direct → custom direct → custom proxy → service presets → mainland China direct → PROXY fallback. Direct wins overlaps. Rules apply only to traffic handled by Mihomo; they are not a system-wide kill switch.'}
       </p>
     </details>
   )
