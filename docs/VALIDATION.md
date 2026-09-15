@@ -14,11 +14,15 @@
 | 本机 Microsoft Edge 运行 `npm run test:browser` | 8/8 通过：桌面 1440×1000 浅色、手机 390×844 深色；覆盖首次弹窗、六步完整应用、手动重开、保存边界及既有转换流程 |
 | 深色修复后主流程复验 | 桌面浅色、手机深色 2/2 通过 |
 | 实际截图检查 | 首次手机深色截图发现标题、选项和次要按钮对比度不足；为弹窗根节点补明确深浅色后重新截图，文字和按钮清晰，无明显遮挡或横向溢出 |
+| 独立只读审查 | 通过；首次自动弹窗焦点回落问题已修复并补 UI / Edge 回归，未发现新增阻断 |
+| GitHub 分支 | `codex/v0.3.6-beginner-mode` 已推送；功能源提交 `bac8b2d9a14229e066b552adc18c6d0d37fdd54c` 已回读一致 |
+| Cloudflare Pages 预览 | Wrangler 4.131.2 上传成功；回读为 `Preview` 环境、分支 `preview-v0-3-6-beginner-mode`、源 `bac8b2d`；地址见[预览记录](RELEASE_v0.3.6_PREVIEW.md) |
+| 线上可见验证 | 新预览域名首次访问自动打开六步模式；实际走到内网步骤，启用后域名和 DNS 值均为空，页面未出现 `svc.cluster.local` |
 | `git diff --check` | 通过 |
 
 新手模式首次展示只使用 `toclash.beginner-guide.v1=seen` 标记。单元和浏览器测试确认代理链接不写入 LocalStorage，重置路由设置后仅保留该标记；手动按钮仍可重开。内网步骤字段为空，页面向导源码和构建资产不包含 `svc.cluster.local` 默认值。补充回归覆盖标记读写被拒绝、Tab / Shift+Tab 循环、首次关闭后的页头焦点回落、编辑后 Escape 丢弃草稿，以及默认直连模式内网 DNS 留空使用 `system`。
 
-测试与截图证明受测简易流程、正式页面回填、YAML 生成、键盘焦点和响应式布局；不证明节点、真实 DNS、VPN、Clash Verge 或 Edge `.local` 解析。当前阶段尚未推送或部署 v0.3.6；远程和 Pages 状态将在独立预览完成后记录。
+测试、截图和 Pages 预览证明受测简易流程、正式页面回填、YAML 生成、键盘焦点和响应式布局；不证明节点、真实 DNS、VPN、Clash Verge 或 Edge `.local` 解析。v0.3.6 只推送到独立 Git 分支并部署到独立 Pages 预览；`main`、生产 Pages 和生产域名没有更新。
 
 ---
 
