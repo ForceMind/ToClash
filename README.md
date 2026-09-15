@@ -6,7 +6,7 @@
 
 ToClash 不提供代理节点，也不会替你连接 VPN。请先准备可用的代理链接，以及支持 Mihomo 配置的客户端。
 
-当前代码版本：**v0.3.4**。支持默认直连模式、29 项服务选择，以及 macOS Edge / Chromium 使用 `.local` 内网域名时的 Clash Verge 提示。已发布的 v0.3.3 详见[版本说明](docs/RELEASE_v0.3.3.md)。
+当前代码版本：**v0.3.4**。支持默认直连模式、29 项服务选择，以及 macOS Edge / Chromium 使用 `.local` 内网域名时的 Clash Verge 提示。[打开 v0.3.4 Pages 预览](https://preview-v0-3-4-local-guide.to-clash.pages.dev/)；已发布的 v0.3.3 详见[版本说明](docs/RELEASE_v0.3.3.md)。
 
 ## 第一次使用
 

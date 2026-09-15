@@ -1,6 +1,6 @@
 # v0.3.4 当前本地验证（2026-09-15）
 
-本轮只修改静态页面、测试、版本和文档，没有修改本机 hosts、DNS、系统代理或 Clash Verge 配置，也没有部署、发布、推送或合并。测试使用假节点、`svc.cluster.local` 和文档保留地址 `192.0.2.53`。
+本轮只修改静态页面、测试、版本和文档，没有修改本机 hosts、DNS、系统代理或 Clash Verge 配置。代码已推送到独立 Git 分支，并部署到独立 Cloudflare Pages 预览分支；没有更新或合并 `main`，也没有更新生产 Pages 环境。测试使用假节点、`svc.cluster.local` 和文档保留地址 `192.0.2.53`。
 
 环境：macOS、Node.js 26.7.0（Vitest 使用 `NODE_OPTIONS=--no-experimental-webstorage`）、npm 11.19.0、Microsoft Edge 153.0.4234.32。
 
@@ -13,11 +13,14 @@
 | `npm run build` | 通过，包含 TypeScript 构建并生成 v0.3.4 `dist/` |
 | 本机 Microsoft Edge 运行 `npm run test:browser` | 8/8 通过：桌面 1440×1000 浅色、手机 390×844 深色；覆盖 `.local` 提示、YAML 四项输出、键盘、下载、保存恢复、无横向溢出及无站外请求断言 |
 | 实际截图检查 | 已查看桌面浅色与手机深色完整设置页；提示在两种布局和主题中可见，无明显遮挡或横向溢出，页脚显示 v0.3.4 |
+| GitHub 分支 | `codex/v0.3.4-local-guide` 已推送；功能源提交 `f9994f31eec74df8db039ea41bc8b6af2f2d4825` 已回读一致 |
+| Cloudflare Pages 预览 | Wrangler 4.131.2 上传成功；回读为 `Preview` 环境、分支 `preview-v0-3-4-local-guide`、源 `f9994f3`；稳定地址与独立部署地址见[预览记录](RELEASE_v0.3.4_PREVIEW.md) |
+| 线上可见验证 | 应用内浏览器打开稳定预览地址，页脚显示 v0.3.4；填写通用示例后出现 `.local` 的 Clash Verge 提示 |
 | `git diff --check` | 通过 |
 
 精确回归证明 `SVC.Cluster.Local.` 规范化为 `svc.cluster.local`，DNS 地址规范化为 `udp://192.0.2.53:53`，并同时出现在 `nameserver-policy`、`proxy-server-nameserver-policy`、`fake-ip-filter` 和 `DOMAIN-SUFFIX,...,DIRECT` 规则中。UI 回归证明有效的 `.local` 子后缀显示中英文 Clash Verge 提示，普通 `corp.example` 不显示。
 
-本机 Edge 测试证明静态成品在受测 Chromium 页面中的渲染、交互和生成结果，不证明 Edge 实际解析内网域名、请求已经被 Clash Verge 接管，或真实公司 DNS、VPN、路由和服务可达。页面说明来源于已验证的 macOS + Edge / Chromium + Clash Verge 场景，不能推广为所有 Clash 客户端的相同行为。当前改动仅存在于本地工作树，线上仍以既有发布版本为准。
+本机 Edge 测试和 Pages 预览验证证明静态成品在受测 Chromium 页面中的渲染、交互和生成结果，不证明 Edge 实际解析内网域名、请求已经被 Clash Verge 接管，或真实公司 DNS、VPN、路由和服务可达。页面说明来源于已验证的 macOS + Edge / Chromium + Clash Verge 场景，不能推广为所有 Clash 客户端的相同行为。生产域名仍使用既有 v0.3.3 发布版本。
 
 安装锁定依赖时 npm 报告 7 项既有开发依赖风险（3 moderate、2 high、2 critical）；本轮没有改依赖版本、运行自动修复或将开发服务暴露到公网。
 
