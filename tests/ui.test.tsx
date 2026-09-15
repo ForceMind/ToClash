@@ -36,6 +36,8 @@ function openPresets(): void {
 function openIntranet(): void {
   fireEvent.click(screen.getByText('企业 / 家庭内网 DNS（可选）'))
   fireEvent.click(screen.getByLabelText('启用内网 DNS 分流'))
+  const closeGuide = screen.queryByRole('button', { name: '稍后填写' })
+  if (closeGuide) fireEvent.click(closeGuide)
 }
 
 describe('界面与分流引导', () => {
@@ -279,6 +281,103 @@ describe('界面与分流引导', () => {
     expect(output()).toBe('')
     fireEvent.click(screen.getByLabelText('启用内网 DNS 分流'))
     expect(output()).not.toBe('')
+  })
+
+  it('弹窗向导从空白开始，逐步填写后才应用到表单', () => {
+    render(<App />)
+    fireEvent.click(screen.getByText('企业 / 家庭内网 DNS（可选）'))
+    fireEvent.click(screen.getByRole('button', { name: '新手填写引导' }))
+
+    const dialog = screen.getByRole('dialog', {
+      name: '内网 DNS 新手填写引导',
+    })
+    expect(dialog.getAttribute('aria-modal')).toBe('true')
+    expect(screen.getByText(/不会提供默认域名或 DNS/)).toBeTruthy()
+    expect(document.body.textContent).not.toContain('svc.cluster.local')
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', { name: '关闭填写引导' }),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }))
+    const suffix = screen.getByLabelText(
+      '填写内网域名后缀',
+    ) as HTMLTextAreaElement
+    expect(suffix.value).toBe('')
+    expect(document.activeElement).toBe(suffix)
+    expect(suffix.placeholder).toBe('corp.example')
+    expect(
+      (screen.getByRole('button', { name: '下一步' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true)
+    fireEvent.change(suffix, { target: { value: 'https://bad.example' } })
+    expect(screen.getByText('请填写有效的裸域名后缀。')).toBeTruthy()
+    fireEvent.change(suffix, { target: { value: 'corp.example' } })
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }))
+
+    const dns = screen.getByLabelText('填写内网 DNS') as HTMLTextAreaElement
+    expect(dns.value).toBe('')
+    expect(document.activeElement).toBe(dns)
+    expect(dns.placeholder).toBe('192.0.2.53')
+    expect(
+      (
+        screen.getByRole('button', {
+          name: '应用到表单',
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true)
+    fireEvent.change(dns, { target: { value: '192.0.2.53' } })
+    fireEvent.click(screen.getByRole('button', { name: '应用到表单' }))
+
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(
+      (screen.getByLabelText('启用内网 DNS 分流') as HTMLInputElement).checked,
+    ).toBe(true)
+    expect(
+      (screen.getByLabelText('内网域名后缀（每行一个）') as HTMLTextAreaElement)
+        .value,
+    ).toBe('corp.example')
+    expect(
+      (
+        screen.getByLabelText(
+          '内网 DNS 服务器（每行一个）',
+        ) as HTMLTextAreaElement
+      ).value,
+    ).toBe('192.0.2.53')
+  })
+
+  it('空表单首次启用时打开向导，可稍后填写且支持 Escape', () => {
+    render(<App />)
+    fireEvent.click(screen.getByText('企业 / 家庭内网 DNS（可选）'))
+    fireEvent.click(screen.getByLabelText('启用内网 DNS 分流'))
+    expect(screen.getByRole('dialog')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '稍后填写' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(
+      (screen.getByLabelText('内网域名后缀（每行一个）') as HTMLTextAreaElement)
+        .value,
+    ).toBe('')
+
+    fireEvent.click(screen.getByRole('button', { name: '新手填写引导' }))
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('英文界面显示空白的新手向导', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to English' }))
+    fireEvent.click(
+      screen.getByText('Enterprise / home intranet DNS (optional)'),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Setup guide' }))
+    expect(
+      screen.getByRole('dialog', { name: 'Intranet DNS setup guide' }),
+    ).toBeTruthy()
+    expect(
+      screen.getByText(/does not provide a default domain or DNS server/),
+    ).toBeTruthy()
+    expect(document.body.textContent).not.toContain('svc.cluster.local')
+    fireEvent.click(screen.getByRole('button', { name: 'Fill later' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   it('内网多后缀生成专用 DNS、fake-IP 排除和直连，并校验非法行', () => {

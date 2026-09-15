@@ -96,13 +96,31 @@ test('real browser conversion, privacy, settings, download and keyboard workflow
     .click()
   await page.getByLabel('启用内网 DNS 分流').check()
   await expect(output).toHaveValue('')
+  const guide = page.getByRole('dialog', {
+    name: '内网 DNS 新手填写引导',
+  })
+  await expect(guide).toBeVisible()
+  await expect(page.getByText(/不会提供默认域名或 DNS/)).toBeVisible()
   await expect(
     page.getByRole('heading', {
       name: 'macOS 上使用 Edge / Chromium 和 Clash Verge',
     }),
   ).toHaveCount(0)
-  await page.getByLabel('内网域名后缀（每行一个）').fill('svc.cluster.local')
-  await page.getByLabel('内网 DNS 服务器（每行一个）').fill('192.0.2.53')
+  await page.screenshot({
+    path: testInfo.outputPath('intranet-guide.png'),
+  })
+  await page.getByRole('button', { name: '下一步' }).click()
+  await expect(page.getByLabel('填写内网域名后缀')).toHaveValue('')
+  await expect(page.getByLabel('填写内网域名后缀')).toHaveAttribute(
+    'placeholder',
+    'corp.example',
+  )
+  await page.getByLabel('填写内网域名后缀').fill('svc.cluster.local')
+  await page.getByRole('button', { name: '下一步' }).click()
+  await expect(page.getByLabel('填写内网 DNS')).toHaveValue('')
+  await page.getByLabel('填写内网 DNS').fill('192.0.2.53')
+  await page.getByRole('button', { name: '应用到表单' }).click()
+  await expect(guide).toHaveCount(0)
   await expect(
     page.getByRole('heading', {
       name: 'macOS 上使用 Edge / Chromium 和 Clash Verge',
@@ -194,6 +212,7 @@ test('routing survives reload and a new tab while node input does not', async ({
     .filter({ hasText: '企业 / 家庭内网 DNS' })
     .click()
   await page.getByLabel('启用内网 DNS 分流').check()
+  await page.getByRole('button', { name: '稍后填写' }).click()
   await page.getByLabel('内网域名后缀（每行一个）').fill('corp.example')
   await page.getByLabel('内网 DNS 服务器（每行一个）').fill('192.0.2.53')
   await page.reload()

@@ -1,4 +1,27 @@
-# v0.3.4 当前本地验证（2026-09-15）
+# v0.3.5 当前本地验证（2026-09-15）
+
+本轮新增弹窗式内网 DNS 新手引导，所有空白输入保持为空，只在用户点击“应用到表单”后写回；没有把 `svc.cluster.local`、DNS 或其他配置作为默认值。没有修改生成规则、本机 hosts、DNS、系统代理或 Clash Verge 配置。
+
+环境：macOS、Node.js 26.7.0（Vitest 使用 `NODE_OPTIONS=--no-experimental-webstorage`）、npm 11.19.0、Microsoft Edge 153.0.4234.32。
+
+| 检查 | 当前结果 |
+| --- | --- |
+| `npm run lint` | 通过，无 ESLint 警告 |
+| `npm run typecheck` | 通过 |
+| `npm run test` | 8 个测试文件、217/217 通过 |
+| `npm run test:coverage` | 通过；核心代码行覆盖率 99.71%，分支覆盖率 90.23% |
+| `npm run build` | 通过，包含 TypeScript 构建并生成 v0.3.5 `dist/` |
+| 本机 Microsoft Edge 运行 `npm run test:browser` | 8/8 通过：桌面 1440×1000 浅色、手机 390×844 深色；覆盖空白向导、三步填写、应用回填、默认直连回归及既有转换流程 |
+| 实际截图检查 | 已查看桌面浅色和手机深色的向导弹窗；弹窗位于视口中心，文字、按钮和遮罩可见，无明显遮挡或横向溢出，页脚显示 v0.3.5 |
+| `git diff --check` | 通过 |
+
+UI 单元测试同时覆盖：中文和英文文案、`aria-modal`、非法域名与 DNS 阻止下一步、关闭、稍后填写、Escape、空白首次启用自动打开、仅确认后应用。向导使用 `corp.example` 与 `192.0.2.53` 作为 placeholder；测试确认字段值仍为空，placeholder 不会写入表单或 LocalStorage。主表单已有用户输入时，向导显示现有值用于继续编辑，这不属于默认预填。
+
+浏览器测试与截图证明受测页面的向导交互和布局，不证明真实内网 DNS、VPN、Clash Verge 或 Edge `.local` 解析。当前阶段尚未推送或部署 v0.3.5；远程和 Pages 状态将在独立预览完成后记录。
+
+---
+
+# 历史记录：v0.3.4 本地与 Pages 预览验证（2026-09-15）
 
 本轮只修改静态页面、测试、版本和文档，没有修改本机 hosts、DNS、系统代理或 Clash Verge 配置。代码已推送到独立 Git 分支，并部署到独立 Cloudflare Pages 预览分支；没有更新或合并 `main`，也没有更新生产 Pages 环境。测试使用假节点、`svc.cluster.local` 和文档保留地址 `192.0.2.53`。
 

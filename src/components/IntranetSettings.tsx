@@ -1,4 +1,6 @@
+import { useRef, useState } from 'react'
 import { parseRoutingTarget } from '../core/utils/domain'
+import { IntranetGuideDialog } from './IntranetGuideDialog'
 
 interface Props {
   directMode?: boolean
@@ -42,7 +44,21 @@ export function IntranetSettings({
   onDnsChange,
   zh,
 }: Props) {
+  const [guideOpen, setGuideOpen] = useState(false)
+  const guideTrigger = useRef<HTMLElement | null>(null)
   const showLocalHelp = enabled && hasLocalSuffix(suffixInput)
+  const openGuide = () => {
+    guideTrigger.current = document.activeElement as HTMLElement | null
+    setGuideOpen(true)
+  }
+  const closeGuide = () => {
+    setGuideOpen(false)
+    window.setTimeout(() => guideTrigger.current?.focus(), 0)
+  }
+  const changeEnabled = (next: boolean) => {
+    onEnabledChange(next)
+    if (next && !suffixInput.trim() && !dnsInput.trim()) openGuide()
+  }
 
   return (
     <details className="rounded-xl border border-slate-300 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
@@ -65,17 +81,22 @@ export function IntranetSettings({
             ? '.lan、.home.arpa 等本地域名默认不会发往公网 DNS，需填写可达的内网 DNS 后才能解析；.local 的 mDNS 仍由系统处理。'
             : 'Local zones such as .lan and .home.arpa are not queried through public DNS by default; configure a reachable intranet DNS server to resolve them. The operating system still handles .local mDNS.'}
       </p>
-      <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm font-medium">
-        <input
-          type="checkbox"
-          checked={enabled}
-          onChange={(event) => onEnabledChange(event.target.checked)}
-          aria-controls={enabled ? 'intranet-fields' : undefined}
-          aria-expanded={enabled}
-          className="h-4 w-4 accent-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-500/25"
-        />
-        {zh ? '启用内网 DNS 分流' : 'Enable intranet DNS routing'}
-      </label>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
+          <input
+            type="checkbox"
+            checked={enabled}
+            onChange={(event) => changeEnabled(event.target.checked)}
+            aria-controls={enabled ? 'intranet-fields' : undefined}
+            aria-expanded={enabled}
+            className="h-4 w-4 accent-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-500/25"
+          />
+          {zh ? '启用内网 DNS 分流' : 'Enable intranet DNS routing'}
+        </label>
+        <button type="button" onClick={openGuide} className="button-secondary">
+          {zh ? '新手填写引导' : 'Setup guide'}
+        </button>
+      </div>
       {enabled && (
         <div id="intranet-fields" className="mt-4 space-y-3">
           <div>
@@ -190,6 +211,20 @@ export function IntranetSettings({
           </div>
         </div>
       )}
+      <IntranetGuideDialog
+        open={guideOpen}
+        directMode={directMode}
+        initialSuffix={suffixInput}
+        initialDns={dnsInput}
+        onApply={(suffix, dns) => {
+          onEnabledChange(true)
+          onSuffixChange(suffix)
+          onDnsChange(dns)
+          closeGuide()
+        }}
+        onClose={closeGuide}
+        zh={zh}
+      />
     </details>
   )
 }

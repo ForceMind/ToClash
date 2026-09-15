@@ -2,6 +2,17 @@
 
 这里记录 ToClash 的重要变更。
 
+## 0.3.5 — 2026-09-15
+
+- 增加三步弹窗式内网 DNS 新手引导，覆盖网络前提、域名后缀和 DNS 输入。
+- 空表单首次启用内网 DNS 时自动打开向导，也可以通过按钮随时重新打开。
+- 域名和 DNS 默认保持空白；不预填 `svc.cluster.local` 或任何实际配置，只有用户确认后才写回表单。
+- 增加中英文、输入校验、关闭/Escape、默认直连和桌面/手机浏览器回归。
+
+### English
+
+Added a three-step intranet DNS setup dialog with blank-by-default inputs, explicit apply behavior, bilingual guidance, validation, and keyboard/mobile coverage. The guide never pre-fills `svc.cluster.local` or a DNS server.
+
 ## 0.3.4 — 2026-09-15
 
 - 当有效内网后缀为 `local` 或以 `.local` 结尾时，显示 macOS Edge / Chromium + Clash Verge 的中英文上下文提示。
