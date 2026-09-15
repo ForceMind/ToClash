@@ -6,7 +6,7 @@
 
 ToClash 不提供代理节点，也不会替你连接 VPN。请先准备可用的代理链接，以及支持 Mihomo 配置的客户端。
 
-当前版本：**v0.3.3**。支持默认直连模式和 29 项服务选择，详见[版本说明](docs/RELEASE_v0.3.3.md)。
+当前代码版本：**v0.3.4**。支持默认直连模式、29 项服务选择，以及 macOS Edge / Chromium 使用 `.local` 内网域名时的 Clash Verge 提示。已发布的 v0.3.3 详见[版本说明](docs/RELEASE_v0.3.3.md)。
 
 ## 第一次使用
 
@@ -71,6 +71,8 @@ https://app.example.net/page
 域名不要加 `https://`、路径或端口。所有填写的域名共用下面这组 DNS。工具会一起生成专用 DNS、真实地址解析和直连规则，无需自己编辑三处配置。
 
 你仍需处在可访问内网的网络中，或已连接相应 VPN。详细格式和特殊情况见[表单填写指南](docs/FILLING_GUIDE.md)。
+
+如果后缀是 `local` 或以 `.local` 结尾，页面会显示 macOS Edge / Chromium + Clash Verge 的额外操作提示。Clash Verge 的系统代理默认绕过可能包含 `*.local`；请求一旦绕过 Clash，YAML 中的 DNS 和 DIRECT 规则就不会生效。ToClash 只生成 Mihomo YAML，不能自动修改 Clash Verge 或 macOS。请按[表单填写指南中的步骤](docs/FILLING_GUIDE.md#macos-edge--chromium--clash-verge-的-local-额外步骤)处理，不要直接清空整个绕过列表。
 
 ## 填写的内容会保存吗？
 

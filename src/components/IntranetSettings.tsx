@@ -1,3 +1,5 @@
+import { parseRoutingTarget } from '../core/utils/domain'
+
 interface Props {
   directMode?: boolean
   enabled: boolean
@@ -15,6 +17,18 @@ interface Props {
 const inputClass =
   'mt-2 min-h-24 w-full rounded-lg border border-slate-300 bg-white p-3 font-mono text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/15 dark:border-slate-700 dark:bg-slate-950'
 
+function hasLocalSuffix(input: string): boolean {
+  return input.split(/\r?\n/).some((line) => {
+    const value = line.trim()
+    if (!value || /[:/?#]/.test(value)) return false
+    const target = parseRoutingTarget(value)
+    return (
+      target?.kind === 'domain' &&
+      (target.value === 'local' || target.value.endsWith('.local'))
+    )
+  })
+}
+
 export function IntranetSettings({
   directMode = false,
   enabled,
@@ -28,6 +42,8 @@ export function IntranetSettings({
   onDnsChange,
   zh,
 }: Props) {
+  const showLocalHelp = enabled && hasLocalSuffix(suffixInput)
+
   return (
     <details className="rounded-xl border border-slate-300 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
       <summary className="cursor-pointer rounded font-semibold focus:outline-none focus:ring-4 focus:ring-blue-500/20">
@@ -124,6 +140,23 @@ export function IntranetSettings({
               ? '仅接受 DNS 服务器的 IPv4 / IPv6 地址，可附端口；所有后缀共用这组服务器。示例只是格式提示，不会自动填入。内网或 VPN 必须已连通；ToClash 不会修改系统 DNS、浏览器 DNS 或 TUN。'
               : 'DNS servers must be IPv4 / IPv6 addresses with an optional port. All suffixes share this server list. Placeholders are not applied. Your intranet or VPN must already be reachable; ToClash does not modify system DNS, browser DNS, or TUN.'}
           </p>
+          {showLocalHelp && (
+            <aside
+              aria-labelledby="local-suffix-help-title"
+              className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm leading-6 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100"
+            >
+              <h3 id="local-suffix-help-title" className="font-semibold">
+                {zh
+                  ? 'macOS 上使用 Edge / Chromium 和 Clash Verge'
+                  : 'Using Edge / Chromium with Clash Verge on macOS'}
+              </h3>
+              <p className="mt-1">
+                {zh
+                  ? '若仍出现 ERR_NAME_NOT_RESOLVED，Clash Verge 可能默认绕过 *.local，导致请求没有进入 Clash。在 Clash Verge 的系统代理设置中关闭“始终使用默认绕过”，改用自定义绕过列表并移除 *.local，然后重新应用或重启系统代理。请保留本机、回环地址和私网等必要绕过项，不要清空整个列表。ToClash 只生成 Mihomo YAML，无法更改 Clash Verge 或 macOS 设置。'
+                  : 'If ERR_NAME_NOT_RESOLVED persists, Clash Verge may be bypassing *.local by default, so the request never enters Clash. In its system proxy settings, turn off “Always use default bypass”, use a custom bypass list without *.local, then reapply or restart the system proxy. Keep required localhost, loopback, and private-network bypass entries; do not clear the entire list. ToClash only generates Mihomo YAML and cannot change Clash Verge or macOS settings.'}
+              </p>
+            </aside>
+          )}
           <div
             id="intranet-validation"
             className="text-xs leading-5 text-red-700 dark:text-red-300"

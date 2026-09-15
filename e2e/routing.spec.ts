@@ -96,19 +96,33 @@ test('real browser conversion, privacy, settings, download and keyboard workflow
     .click()
   await page.getByLabel('启用内网 DNS 分流').check()
   await expect(output).toHaveValue('')
-  await page.getByLabel('内网域名后缀（每行一个）').fill('corp.example')
+  await expect(
+    page.getByRole('heading', {
+      name: 'macOS 上使用 Edge / Chromium 和 Clash Verge',
+    }),
+  ).toHaveCount(0)
+  await page.getByLabel('内网域名后缀（每行一个）').fill('svc.cluster.local')
   await page.getByLabel('内网 DNS 服务器（每行一个）').fill('192.0.2.53')
+  await expect(
+    page.getByRole('heading', {
+      name: 'macOS 上使用 Edge / Chromium 和 Clash Verge',
+    }),
+  ).toBeVisible()
+  await expect(page.getByText(/默认绕过 \*\.local/)).toBeVisible()
   const internalConfig = parse(await output.inputValue())
-  expect(internalConfig.dns['nameserver-policy']['+.corp.example']).toEqual([
-    'udp://192.0.2.53:53',
-  ])
   expect(
-    internalConfig.dns['proxy-server-nameserver-policy']['+.corp.example'],
+    internalConfig.dns['nameserver-policy']['+.svc.cluster.local'],
+  ).toEqual(['udp://192.0.2.53:53'])
+  expect(
+    internalConfig.dns['proxy-server-nameserver-policy']['+.svc.cluster.local'],
   ).toEqual(['udp://192.0.2.53:53'])
   expect(internalConfig.dns['proxy-server-nameserver-policy']['+.lan']).toEqual(
     ['rcode://refused'],
   )
-  expect(internalConfig.dns['fake-ip-filter']).toContain('+.corp.example')
+  expect(internalConfig.dns['fake-ip-filter']).toContain('+.svc.cluster.local')
+  expect(internalConfig.rules).toContain(
+    'DOMAIN-SUFFIX,svc.cluster.local,DIRECT',
+  )
   await page.locator('summary').filter({ hasText: '服务规则预设' }).click()
   await page.getByLabel('直连共享地址段（CGNAT）', { exact: false }).check()
   expect(parse(await output.inputValue()).rules).toContain(

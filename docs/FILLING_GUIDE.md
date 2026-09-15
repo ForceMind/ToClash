@@ -56,6 +56,20 @@ home.arpa
 
 `cluster.local` / `svc.cluster.local` 需要特别核实：DNS 可达不代表 Kubernetes 服务 IP 可达，浏览器的 `.local` 解析路径也可能不同。优先使用网络管理员提供的可从电脑访问的前端和 API 域名；只有确实需要旧集群域名且 DNS、网络都支持时才添加对应后缀。
 
+### macOS Edge / Chromium + Clash Verge 的 `.local` 额外步骤
+
+此步骤只针对已经验证过的 macOS、Edge / Chromium 和 Clash Verge 组合，不代表所有 Clash 客户端都有相同设置。
+
+Clash Verge 的系统代理默认绕过列表可能包含 `*.local`。这会让 Edge 绕过 Clash，进入 Chromium / macOS 对 `.local` 的特殊解析路径；即使系统命令能够解析，Edge 仍可能显示 `ERR_NAME_NOT_RESOLVED`。ToClash 生成的 Mihomo YAML 只能处理已经进入 Clash 的请求，不能修改该绕过列表。
+
+1. 先在 ToClash 启用内网 DNS 分流，填写实际后缀和可达的内网 DNS，导出并在 Clash Verge 中启用新配置。
+2. 打开 Clash Verge 的系统代理设置，关闭“始终使用默认绕过”。
+3. 使用自定义绕过列表并移除 `*.local`。保留 `localhost`、回环地址、私网或本机环境确实需要的其他绕过项；不要清空整个列表。
+4. 重新应用系统代理，或将系统代理关闭后再开启。如果设置没有生效，再重启 Clash Verge 的系统代理功能。
+5. 用 Edge 重新访问测试域名，并在 Clash Verge 的连接或日志中确认请求进入 Clash、命中对应 `DOMAIN-SUFFIX,...,DIRECT` 规则。
+
+如果测试域名已写入本机 hosts，先备份并临时禁用对应条目，测试后恢复。否则页面打开可能只是 hosts 命中，不能证明内网 DNS 分流成功。验证还应确认内网 DNS 返回的地址可路由、VPN 或内网已连接；YAML 正确不代表目标服务一定可达。
+
 ## 自定义网站分流
 
 两栏均每行一个域名、网址或 IP。例如：

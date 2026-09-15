@@ -1,12 +1,23 @@
-# v0.3.1
+# 变更日志
+
+这里记录 ToClash 的重要变更。
+
+## 0.3.4 — 2026-09-15
+
+- 当有效内网后缀为 `local` 或以 `.local` 结尾时，显示 macOS Edge / Chromium + Clash Verge 的中英文上下文提示。
+- 说明 Clash Verge 默认 `*.local` 系统代理绕过、必要绕过项保留方式，以及 ToClash 仅生成 Mihomo YAML 的能力边界。
+- 增加 `svc.cluster.local` 的 DNS 规范化、两类 DNS 策略、fake-IP 排除和 DIRECT 规则回归，并覆盖 UI 触发、非触发、语言切换与 Chromium 布局。
+- 补充关闭 hosts 命中后验证内网 DNS 的方法；不包含部署、发布或真实客户端配置变更。
+
+### English
+
+Added a bilingual macOS Edge / Chromium + Clash Verge notice for `.local` intranet suffixes, exact `svc.cluster.local` DNS and routing regression coverage, and client-side verification guidance. ToClash still only generates Mihomo YAML and does not change operating-system or Clash Verge settings.
+
+## 0.3.1
 
 - 自定义网站分流和内网 DNS 自动本地保存与恢复，存储失败明确提示。
 - 拆分清空节点与重置设置；节点凭据和 YAML 不持久保存。
 - 增加填写指南与仓库阅读路径，忽略 macOS AppleDouble 附属文件。
-
-# 变更日志
-
-这里记录 ToClash 的重要变更。
 
 ## 0.3.0 — 2026-09-02
 

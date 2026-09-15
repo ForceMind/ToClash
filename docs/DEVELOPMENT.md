@@ -81,6 +81,14 @@ https://forcemind.github.io/ToClash/
 npx wrangler pages deploy /path/to/clean-dist --project-name to-clash --branch main
 ```
 
+需要生成预览时，必须使用非 `main` 的独立 Pages 分支，并显式关联已提交的源版本：
+
+```bash
+npx wrangler pages deploy /path/to/clean-dist --project-name to-clash --branch <preview-branch> --commit-hash <git-sha>
+```
+
+Cloudflare 会为预览分支提供独立的 `pages.dev` 地址。先从部署列表回读环境、分支和提交，再访问预览地址核对页面版本与静态资源；预览部署不能作为生产域名已更新的证据。
+
 `clean-dist` 只应包含本次构建的 index.html、favicon.svg 和 assets 文件；从 macOS 外置磁盘复制时排除 `._*`、`.DS_Store`，不要上传节点配置或源码。上传后回读生产部署，并访问自定义域名核对页脚版本。最近一次部署见[发布记录](RELEASE_v0.3.3.md)。
 
 ```text

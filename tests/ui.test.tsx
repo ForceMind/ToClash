@@ -314,6 +314,72 @@ describe('界面与分流引导', () => {
     expect(output()).toBe('')
   })
 
+  it('.local 后缀显示 Clash Verge 提示，普通后缀不显示，并随语言切换', () => {
+    render(<App />)
+    openIntranet()
+    fill('内网域名后缀（每行一个）', 'corp.example')
+    fill('内网 DNS 服务器（每行一个）', '192.0.2.53')
+    expect(
+      screen.queryByRole('heading', {
+        name: 'macOS 上使用 Edge / Chromium 和 Clash Verge',
+      }),
+    ).toBeNull()
+
+    fill('内网域名后缀（每行一个）', 'https://svc.cluster.local')
+    expect(
+      screen.queryByRole('heading', {
+        name: 'macOS 上使用 Edge / Chromium 和 Clash Verge',
+      }),
+    ).toBeNull()
+
+    fill('内网域名后缀（每行一个）', 'corp.example\nLOCAL.')
+    expect(
+      screen.getByRole('heading', {
+        name: 'macOS 上使用 Edge / Chromium 和 Clash Verge',
+      }),
+    ).toBeTruthy()
+
+    fill('内网域名后缀（每行一个）', 'svc.cluster.local')
+    expect(
+      screen.getByRole('heading', {
+        name: 'macOS 上使用 Edge / Chromium 和 Clash Verge',
+      }),
+    ).toBeTruthy()
+    expect(screen.getByText(/默认绕过 \*\.local/)).toBeTruthy()
+    expect(screen.getByText(/不要清空整个列表/)).toBeTruthy()
+    expect(screen.getByText(/只生成 Mihomo YAML/)).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to English' }))
+    expect(
+      screen.getByRole('heading', {
+        name: 'Using Edge / Chromium with Clash Verge on macOS',
+      }),
+    ).toBeTruthy()
+    expect(screen.getByText(/Always use default bypass/)).toBeTruthy()
+    expect(screen.getByText(/do not clear the entire list/)).toBeTruthy()
+    expect(screen.getByText(/only generates Mihomo YAML/)).toBeTruthy()
+
+    fireEvent.click(screen.getByLabelText('Enable intranet DNS routing'))
+    expect(
+      screen.queryByRole('heading', {
+        name: 'Using Edge / Chromium with Clash Verge on macOS',
+      }),
+    ).toBeNull()
+    fireEvent.click(screen.getByLabelText('Enable intranet DNS routing'))
+    expect(
+      screen.getByRole('heading', {
+        name: 'Using Edge / Chromium with Clash Verge on macOS',
+      }),
+    ).toBeTruthy()
+
+    fill('Intranet domain suffixes (one per line)', 'corp.example')
+    expect(
+      screen.queryByRole('heading', {
+        name: 'Using Edge / Chromium with Clash Verge on macOS',
+      }),
+    ).toBeNull()
+  })
+
   it('CGNAT 直连默认为关闭，开启后才生成对应规则', () => {
     render(<App />)
     openPresets()

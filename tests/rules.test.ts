@@ -204,6 +204,20 @@ describe('default-direct routing', () => {
 })
 
 describe('local and intranet routing', () => {
+  it('generates every required DNS and DIRECT output for svc.cluster.local', () => {
+    const plan = buildRulePlan({
+      intranet: [{ suffix: 'SVC.Cluster.Local.', nameservers: ['192.0.2.53'] }],
+      presets: noPresets,
+    })
+    const business = policyOf(plan)
+    const bootstrap = plan.dns['proxy-server-nameserver-policy'] as Record<string, string[]>
+
+    expect(business['+.svc.cluster.local']).toEqual(['udp://192.0.2.53:53'])
+    expect(bootstrap['+.svc.cluster.local']).toEqual(['udp://192.0.2.53:53'])
+    expect(plan.dns['fake-ip-filter']).toContain('+.svc.cluster.local')
+    expect(rulesOf(plan)).toContain('DOMAIN-SUFFIX,svc.cluster.local,DIRECT')
+  })
+
   it('uses only local and intranet policies for node-hostname bootstrap, never business routes or proxy DNS', () => {
     const plan = buildRulePlan({ directDomains: ['bank.example'], proxyDomains: ['service.example'], intranet: [{ suffix: 'corp.example', nameservers: ['10.0.0.53'] }, { suffix: 'lab.corp.example', nameservers: ['10.0.0.54'] }] })
     const bootstrap = plan.dns['proxy-server-nameserver-policy'] as Record<string, string[]>

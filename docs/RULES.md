@@ -122,7 +122,15 @@ UI 的所有后缀共用同一组服务器；核心 API 可为不同后缀配置
        → 内网 DNS → Ingress / 网关 → 内部服务
 ```
 
-不要把 Kubernetes 的 `*.svc.cluster.local` 直接当作桌面浏览器 API 地址。前端与 API 都应使用浏览器可访问的企业域名。`.local` 可能走系统 mDNS；浏览器自有 DoH 也可能绕开系统解析路径，这些需要用户或管理员配置，ToClash 不会代为修改。内网/VPN 及 DNS 服务器必须已经可达。
+不要把 Kubernetes 的 `*.svc.cluster.local` 直接当作桌面浏览器 API 地址。前端与 API 通常应使用浏览器可访问的企业域名；只有 DNS、路由和服务入口都支持时，桌面端才可直接使用该后缀。
+
+`.local` 场景包含三个独立层次：
+
+1. ToClash 生成的 YAML 通过 `nameserver-policy`、`proxy-server-nameserver-policy`、`fake-ip-filter` 和 DIRECT 规则描述 Mihomo 行为。
+2. Clash Verge 的系统代理绕过列表决定请求是否进入 Clash。macOS 上默认绕过可能包含 `*.local`；被绕过的请求不会执行上述 YAML。
+3. 未进入 Clash 的 Edge / Chromium 请求会继续受到浏览器及 macOS 对 `.local` 的特殊解析行为影响，可能显示 `ERR_NAME_NOT_RESOLVED`。
+
+在已验证的 macOS + Edge / Chromium + Clash Verge 场景中，处理方法是关闭 Clash Verge 系统代理设置中的“始终使用默认绕过”，改用不含 `*.local` 的自定义绕过列表，然后重新应用或重启系统代理。应保留本机、回环地址、私网等必要绕过项，不能简单清空列表。ToClash 是静态 YAML 生成器，不能读取或更改 Clash Verge、macOS、浏览器 DoH、VPN 或系统 DNS 设置；其他 Clash 客户端的设置名称和行为可能不同。
 
 ## 服务预设范围与维护
 
@@ -143,6 +151,8 @@ v0.3.3 增加分类、搜索和独立开关，完整目录、来源和共享域�
 - 用可信 Mihomo 和 GeoSite / GeoIP 数据运行 `npm run test:mihomo -- /path/to/mihomo /path/to/geodata`；语法通过不代表真实流量策略已验证。
 - 开发者可运行 `npm run test:mihomo:dns -- /path/to/mihomo /path/to/geodata`，验证真实核心的 DNS 匹配与节点域名解析。所有上游替换成本机模拟服务，测试不会查询这些示例域名的公网 DNS。
 - 在自己的设备检查前端/API 的系统 DNS 和浏览器 DNS，再观察 Mihomo 连接/规则结果。
+- 对 `.local` 测试，先确认 Clash Verge 的系统代理绕过列表不含 `*.local`，再在 Edge 中重试，并从 Clash Verge 连接或日志确认请求确实进入 Mihomo。
+- 如果测试域名存在于本机 hosts，先备份并临时禁用对应条目，测试后恢复；否则 hosts 命中不能证明 `nameserver-policy` 使用了内网 DNS。
 - 检查直连/代理父子域、内网子域、节点服务器域名各自的解析路径；不要只检查页面是否能打开。
 - 切换 VPN/TUN、浏览器和重启客户端后重复检查。系统 DNS、网络路由、账号风控不属于网页转换器可控制的范围。
 
