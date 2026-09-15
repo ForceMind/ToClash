@@ -3,6 +3,7 @@ import { parse } from 'yaml'
 
 test('direct mode conversion and saved choices', async ({ page }, testInfo) => {
   await page.goto('/')
+  await page.getByRole('button', { name: '退出新手模式' }).click()
   await page.getByLabel('网络模式', { exact: true }).selectOption('direct')
   await page.getByRole('button', { name: '示例', exact: true }).click()
   await page.getByRole('button', { name: '转换', exact: true }).click()
@@ -13,7 +14,6 @@ test('direct mode conversion and saved choices', async ({ page }, testInfo) => {
     .filter({ hasText: '企业 / 家庭内网 DNS' })
     .click()
   await page.getByLabel('启用内网 DNS 分流', { exact: true }).check()
-  await page.getByRole('button', { name: '稍后填写' }).click()
   await page
     .getByLabel('内网域名后缀（每行一个）', { exact: true })
     .fill('corp.example')

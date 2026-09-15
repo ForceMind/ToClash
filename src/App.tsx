@@ -1,4 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  BeginnerGuideDialog,
+  type BeginnerGuideValues,
+} from './components/BeginnerGuideDialog'
 import { ErrorList } from './components/ErrorList'
 import { FormatSelector } from './components/FormatSelector'
 import { InputPanel } from './components/InputPanel'
@@ -13,6 +17,10 @@ import type { CustomRouting, RoutingWarning } from './core/rules/types'
 import { serializeMihomo, type OutputFormat } from './core/serializer/yaml'
 import { parseDomainList } from './core/utils/domain'
 import { parseIntranetConfig } from './core/utils/intranet'
+import {
+  markBeginnerGuideSeen,
+  shouldOpenBeginnerGuide,
+} from './settings/onboarding'
 import { defaultPresets, loadSettings, saveSettings } from './settings/storage'
 import packageJson from '../package.json'
 
@@ -47,6 +55,9 @@ export default function App() {
     () => window.matchMedia('(prefers-color-scheme: dark)').matches,
   )
   const [zh, setZh] = useState(true)
+  const [beginnerGuideOpen, setBeginnerGuideOpen] = useState(
+    shouldOpenBeginnerGuide,
+  )
   const [restored] = useState(loadSettings)
   const [storageFailed, setStorageFailed] = useState(restored.failed)
   const lastSaved = useRef(JSON.stringify(restored.settings))
@@ -66,6 +77,8 @@ export default function App() {
   const [intranetDnsInput, setIntranetDnsInput] = useState(
     restored.settings.intranetDnsInput,
   )
+  const beginnerGuideButton = useRef<HTMLButtonElement>(null)
+  const beginnerGuideTrigger = useRef<HTMLElement | null>(null)
   const revision = useRef(0)
 
   useEffect(() => {
@@ -183,6 +196,36 @@ export default function App() {
     setResult(null)
   }
 
+  const openBeginnerGuide = () => {
+    beginnerGuideTrigger.current = document.activeElement as HTMLElement | null
+    setBeginnerGuideOpen(true)
+  }
+
+  const closeBeginnerGuide = () => {
+    setBeginnerGuideOpen(false)
+    if (!markBeginnerGuideSeen()) setStorageFailed(true)
+    window.setTimeout(
+      () =>
+        (beginnerGuideTrigger.current ?? beginnerGuideButton.current)?.focus(),
+      0,
+    )
+  }
+
+  const applyBeginnerGuide = (values: BeginnerGuideValues) => {
+    invalidateNotice()
+    setInput(values.input)
+    setFormat('full')
+    setMode(values.mode)
+    setPresets(values.presets)
+    setDirectInput(values.directInput)
+    setProxyInput(values.proxyInput)
+    setIntranetEnabled(values.intranetEnabled)
+    setIntranetSuffixInput(values.intranetSuffixInput)
+    setIntranetDnsInput(values.intranetDnsInput)
+    setResult(convertLinks(values.input))
+    closeBeginnerGuide()
+  }
+
   const resetSettings = () => {
     invalidateNotice()
     setDirectInput('')
@@ -258,14 +301,22 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 text-ink transition-colors dark:bg-slate-950 dark:text-slate-100">
       <header className="border-b border-slate-200 bg-white/80 dark:border-slate-800 dark:bg-slate-950/80">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-4">
           <a
             href="./"
             className="rounded text-xl font-bold tracking-tight focus:outline-none focus:ring-4 focus:ring-blue-500/20"
           >
             ToClash
           </a>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              ref={beginnerGuideButton}
+              type="button"
+              onClick={openBeginnerGuide}
+              className="rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-100 focus:outline-none focus:ring-4 focus:ring-blue-500/20 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200 dark:hover:bg-blue-900/50"
+            >
+              {zh ? '新手模式' : 'Beginner mode'}
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -530,6 +581,22 @@ export default function App() {
           ToClash v{packageJson.version} · Apache 2.0 License
         </p>
       </footer>
+      <BeginnerGuideDialog
+        open={beginnerGuideOpen}
+        initialValues={{
+          input,
+          mode,
+          presets,
+          directInput,
+          proxyInput,
+          intranetEnabled,
+          intranetSuffixInput,
+          intranetDnsInput,
+        }}
+        onApply={applyBeginnerGuide}
+        onClose={closeBeginnerGuide}
+        zh={zh}
+      />
     </div>
   )
 }

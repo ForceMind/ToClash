@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 import { parse } from 'yaml'
 
+const guideLink = 'vless://00000000-0000-4000-8000-000000000000@example.com:443'
+
 test('real browser conversion, privacy, settings, download and keyboard workflow', async ({
   page,
   context,
@@ -21,8 +23,29 @@ test('real browser conversion, privacy, settings, download and keyboard workflow
       .split(' ')
       .includes('dark'),
   ).toBe(testInfo.project.name === 'mobile-dark')
-  await page.getByRole('button', { name: '示例', exact: true }).click()
-  await page.getByRole('button', { name: '转换', exact: true }).click()
+  const beginnerGuide = page.getByRole('dialog', {
+    name: '新手模式：生成 Clash YAML',
+  })
+  await expect(beginnerGuide).toBeVisible()
+  await page.screenshot({ path: testInfo.outputPath('beginner-mode.png') })
+  await page.getByRole('button', { name: '下一步' }).click()
+  await expect(page.getByLabel('粘贴代理链接')).toHaveValue('')
+  await expect(page.getByLabel('粘贴代理链接')).toBeFocused()
+  await expect(page.getByRole('button', { name: '下一步' })).toBeDisabled()
+  await page.getByLabel('粘贴代理链接').fill(guideLink)
+  await page.getByRole('button', { name: '下一步' }).click()
+  await expect(page.getByText(/全部 29 项服务/)).toBeVisible()
+  await page.getByRole('button', { name: '下一步' }).click()
+  await expect(page.getByLabel('始终直连', { exact: true })).toHaveValue('')
+  await expect(page.getByLabel('始终代理', { exact: true })).toHaveValue('')
+  await page.getByRole('button', { name: '下一步' }).click()
+  await expect(page.getByLabel('我需要访问公司或家庭内网')).not.toBeChecked()
+  await expect(page.getByText(/不会自动填入任何后缀/)).toBeVisible()
+  await page.getByRole('button', { name: '下一步' }).click()
+  await expect(page.getByText('有效节点')).toBeVisible()
+  await page.getByRole('button', { name: '应用并转换' }).click()
+  await expect(beginnerGuide).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '新手模式' })).toBeFocused()
   const output = page.getByLabel('Mihomo YAML')
   await expect(output).not.toHaveValue('')
   expect(parse(await output.inputValue()).rules).toContain(
@@ -96,31 +119,13 @@ test('real browser conversion, privacy, settings, download and keyboard workflow
     .click()
   await page.getByLabel('启用内网 DNS 分流').check()
   await expect(output).toHaveValue('')
-  const guide = page.getByRole('dialog', {
-    name: '内网 DNS 新手填写引导',
-  })
-  await expect(guide).toBeVisible()
-  await expect(page.getByText(/不会提供默认域名或 DNS/)).toBeVisible()
   await expect(
     page.getByRole('heading', {
       name: 'macOS 上使用 Edge / Chromium 和 Clash Verge',
     }),
   ).toHaveCount(0)
-  await page.screenshot({
-    path: testInfo.outputPath('intranet-guide.png'),
-  })
-  await page.getByRole('button', { name: '下一步' }).click()
-  await expect(page.getByLabel('填写内网域名后缀')).toHaveValue('')
-  await expect(page.getByLabel('填写内网域名后缀')).toHaveAttribute(
-    'placeholder',
-    'corp.example',
-  )
-  await page.getByLabel('填写内网域名后缀').fill('svc.cluster.local')
-  await page.getByRole('button', { name: '下一步' }).click()
-  await expect(page.getByLabel('填写内网 DNS')).toHaveValue('')
-  await page.getByLabel('填写内网 DNS').fill('192.0.2.53')
-  await page.getByRole('button', { name: '应用到表单' }).click()
-  await expect(guide).toHaveCount(0)
+  await page.getByLabel('内网域名后缀（每行一个）').fill('svc.cluster.local')
+  await page.getByLabel('内网 DNS 服务器（每行一个）').fill('192.0.2.53')
   await expect(
     page.getByRole('heading', {
       name: 'macOS 上使用 Edge / Chromium 和 Clash Verge',
@@ -169,6 +174,12 @@ test('real browser conversion, privacy, settings, download and keyboard workflow
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'Proxy links → Clash YAML',
   )
+  await page.getByRole('button', { name: 'Beginner mode' }).click()
+  await expect(
+    page.getByRole('dialog', { name: 'Beginner mode: build Clash YAML' }),
+  ).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
   const wasDark = (await page.locator('html').getAttribute('class')) === 'dark'
   await page
     .getByRole('button', {
@@ -185,10 +196,15 @@ test('real browser conversion, privacy, settings, download and keyboard workflow
   })
   expect(
     await page.evaluate(() => ({
-      local: localStorage.length,
+      guide: localStorage.getItem('toclash.beginner-guide.v1'),
+      localKeys: Object.keys(localStorage),
       session: sessionStorage.length,
     })),
-  ).toEqual({ local: 0, session: 0 })
+  ).toEqual({
+    guide: 'seen',
+    localKeys: ['toclash.beginner-guide.v1'],
+    session: 0,
+  })
   expect(
     requests.every((url) => url.startsWith(`${testInfo.project.use.baseURL}/`)),
   ).toBe(true)
@@ -201,6 +217,7 @@ test('routing survives reload and a new tab while node input does not', async ({
   context,
 }) => {
   await page.goto('/')
+  await page.getByRole('button', { name: '退出新手模式' }).click()
   await page.getByRole('button', { name: '示例', exact: true }).click()
   await page.locator('summary').filter({ hasText: '自定义网站分流' }).click()
   await page
@@ -212,7 +229,6 @@ test('routing survives reload and a new tab while node input does not', async ({
     .filter({ hasText: '企业 / 家庭内网 DNS' })
     .click()
   await page.getByLabel('启用内网 DNS 分流').check()
-  await page.getByRole('button', { name: '稍后填写' }).click()
   await page.getByLabel('内网域名后缀（每行一个）').fill('corp.example')
   await page.getByLabel('内网 DNS 服务器（每行一个）').fill('192.0.2.53')
   await page.reload()

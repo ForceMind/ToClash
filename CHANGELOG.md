@@ -2,6 +2,18 @@
 
 这里记录 ToClash 的重要变更。
 
+## 0.3.6 — 2026-09-15
+
+- 将内网专用向导升级为全局六步新手模式，覆盖网络模式、代理链接、常用服务、网站分流、内网 DNS 和确认转换。
+- 首次访问自动打开，页头按钮可随时手动重新触发；关闭或 Escape 不应用草稿。
+- 只保存 `seen` 首次展示标记，不持久化代理链接或向导草稿；内网字段不自动填入任何后缀。
+- 保留完整页面的全部 29 项服务与高级设置，新手模式只提供常用、安全的简易入口。
+- 增加中英文、输入阻断、完整应用、存储、桌面浅色和手机深色浏览器回归，并修复深色弹窗文字对比度。
+
+### English
+
+Expanded the intranet-only dialog into a six-step beginner mode for the complete conversion flow. It opens on first visit, remains available from the header, applies only after confirmation, stores only a `seen` marker, and preserves the full advanced page.
+
 ## 0.3.5 — 2026-09-15
 
 - 增加三步弹窗式内网 DNS 新手引导，覆盖网络前提、域名后缀和 DNS 输入。

@@ -5,6 +5,7 @@ test('choose overseas services and preserve choices on reload', async ({
   page,
 }, testInfo) => {
   await page.goto('/')
+  await page.getByRole('button', { name: '退出新手模式' }).click()
   await page.getByLabel('网络模式', { exact: true }).selectOption('direct')
   await page.getByRole('button', { name: '示例', exact: true }).click()
   await page.getByRole('button', { name: '转换', exact: true }).click()

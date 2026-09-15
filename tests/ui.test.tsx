@@ -4,12 +4,14 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { parse } from 'yaml'
 import App from '../src/App'
 import { RULE_PRESETS } from '../src/core/rules/presets'
 import * as serializer from '../src/core/serializer/yaml'
+import { BEGINNER_GUIDE_KEY } from '../src/settings/onboarding'
 
 const exampleLink =
   'vless://00000000-0000-4000-8000-000000000000@example.com:443'
@@ -36,13 +38,12 @@ function openPresets(): void {
 function openIntranet(): void {
   fireEvent.click(screen.getByText('企业 / 家庭内网 DNS（可选）'))
   fireEvent.click(screen.getByLabelText('启用内网 DNS 分流'))
-  const closeGuide = screen.queryByRole('button', { name: '稍后填写' })
-  if (closeGuide) fireEvent.click(closeGuide)
 }
 
 describe('界面与分流引导', () => {
   beforeEach(() => {
     window.localStorage.clear()
+    window.localStorage.setItem(BEGINNER_GUIDE_KEY, 'seen')
     vi.stubGlobal(
       'matchMedia',
       vi.fn(() => ({
@@ -283,101 +284,165 @@ describe('界面与分流引导', () => {
     expect(output()).not.toBe('')
   })
 
-  it('弹窗向导从空白开始，逐步填写后才应用到表单', () => {
+  it('新手模式覆盖完整流程，最后确认后写回并转换', () => {
     render(<App />)
-    fireEvent.click(screen.getByText('企业 / 家庭内网 DNS（可选）'))
-    fireEvent.click(screen.getByRole('button', { name: '新手填写引导' }))
+    fireEvent.click(screen.getByRole('button', { name: '新手模式' }))
 
     const dialog = screen.getByRole('dialog', {
-      name: '内网 DNS 新手填写引导',
+      name: '新手模式：生成 Clash YAML',
     })
     expect(dialog.getAttribute('aria-modal')).toBe('true')
-    expect(screen.getByText(/不会提供默认域名或 DNS/)).toBeTruthy()
+    expect(screen.getByText(/完整页面的简易模式/)).toBeTruthy()
     expect(document.body.textContent).not.toContain('svc.cluster.local')
     expect(document.activeElement).toBe(
-      screen.getByRole('button', { name: '关闭填写引导' }),
+      screen.getByRole('radio', { name: /常规分流/ }),
     )
 
     fireEvent.click(screen.getByRole('button', { name: '下一步' }))
-    const suffix = screen.getByLabelText(
-      '填写内网域名后缀',
-    ) as HTMLTextAreaElement
-    expect(suffix.value).toBe('')
-    expect(document.activeElement).toBe(suffix)
-    expect(suffix.placeholder).toBe('corp.example')
+    const links = screen.getByLabelText('粘贴代理链接') as HTMLTextAreaElement
+    expect(links.value).toBe('')
+    expect(document.activeElement).toBe(links)
     expect(
       (screen.getByRole('button', { name: '下一步' }) as HTMLButtonElement)
         .disabled,
     ).toBe(true)
-    fireEvent.change(suffix, { target: { value: 'https://bad.example' } })
-    expect(screen.getByText('请填写有效的裸域名后缀。')).toBeTruthy()
-    fireEvent.change(suffix, { target: { value: 'corp.example' } })
+    fireEvent.change(links, {
+      target: { value: `${exampleLink}\nnot-a-link` },
+    })
+    expect(screen.getByText('已检测 2 条，成功 1 条，失败 1 条。')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: '下一步' }))
 
-    const dns = screen.getByLabelText('填写内网 DNS') as HTMLTextAreaElement
-    expect(dns.value).toBe('')
-    expect(document.activeElement).toBe(dns)
-    expect(dns.placeholder).toBe('192.0.2.53')
+    expect(screen.getByText(/全部 29 项服务/)).toBeTruthy()
+    fireEvent.click(within(dialog).getByLabelText('开发者服务 / GitHub'))
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }))
+
+    fill('始终直连', 'bank.example')
+    fill('始终代理', 'video.example')
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }))
+
     expect(
-      (
-        screen.getByRole('button', {
-          name: '应用到表单',
-        }) as HTMLButtonElement
-      ).disabled,
-    ).toBe(true)
+      (screen.getByLabelText('我需要访问公司或家庭内网') as HTMLInputElement)
+        .checked,
+    ).toBe(false)
+    fireEvent.click(screen.getByLabelText('我需要访问公司或家庭内网'))
+    const suffix = screen.getByLabelText('内网域名后缀') as HTMLTextAreaElement
+    const dns = screen.getByLabelText('内网 DNS') as HTMLTextAreaElement
+    expect(suffix.value).toBe('')
+    expect(dns.value).toBe('')
+    expect(document.body.textContent).not.toContain('svc.cluster.local')
+    fireEvent.change(suffix, { target: { value: 'corp.example' } })
     fireEvent.change(dns, { target: { value: '192.0.2.53' } })
-    fireEvent.click(screen.getByRole('button', { name: '应用到表单' }))
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }))
+
+    expect(screen.getByText('有效节点').nextSibling?.textContent).toBe('1')
+    expect(screen.getByText('额外网站规则').nextSibling?.textContent).toBe('2')
+    fireEvent.click(screen.getByRole('button', { name: '应用并转换' }))
 
     expect(screen.queryByRole('dialog')).toBeNull()
+    expect(
+      (screen.getByLabelText('代理链接') as HTMLTextAreaElement).value,
+    ).toBe(`${exampleLink}\nnot-a-link`)
+    expect(output()).toContain('DOMAIN-SUFFIX,bank.example,DIRECT')
+    expect(output()).toContain('DOMAIN-SUFFIX,video.example,FORCE_PROXY')
+    expect(output()).toContain('DOMAIN-SUFFIX,corp.example,DIRECT')
+    expect(
+      screen.getByText('检测到 2 条链接 · 成功 1 条 · 失败 1 条'),
+    ).toBeTruthy()
     expect(
       (screen.getByLabelText('启用内网 DNS 分流') as HTMLInputElement).checked,
     ).toBe(true)
     expect(
-      (screen.getByLabelText('内网域名后缀（每行一个）') as HTMLTextAreaElement)
-        .value,
-    ).toBe('corp.example')
-    expect(
-      (
-        screen.getByLabelText(
-          '内网 DNS 服务器（每行一个）',
-        ) as HTMLTextAreaElement
-      ).value,
-    ).toBe('192.0.2.53')
+      (screen.getByLabelText('开发者服务 / GitHub') as HTMLInputElement)
+        .checked,
+    ).toBe(false)
   })
 
-  it('空表单首次启用时打开向导，可稍后填写且支持 Escape', () => {
+  it('首次访问自动打开新手模式，退出后可从页头手动重开', async () => {
+    window.localStorage.removeItem(BEGINNER_GUIDE_KEY)
     render(<App />)
-    fireEvent.click(screen.getByText('企业 / 家庭内网 DNS（可选）'))
-    fireEvent.click(screen.getByLabelText('启用内网 DNS 分流'))
-    expect(screen.getByRole('dialog')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: '稍后填写' }))
-    expect(screen.queryByRole('dialog')).toBeNull()
     expect(
-      (screen.getByLabelText('内网域名后缀（每行一个）') as HTMLTextAreaElement)
-        .value,
-    ).toBe('')
-
-    fireEvent.click(screen.getByRole('button', { name: '新手填写引导' }))
+      screen.getByRole('dialog', { name: '新手模式：生成 Clash YAML' }),
+    ).toBeTruthy()
+    expect(window.localStorage.getItem(BEGINNER_GUIDE_KEY)).toBeNull()
+    const close = screen.getByRole('button', { name: '关闭新手模式' })
+    const next = screen.getByRole('button', { name: '下一步' })
+    next.focus()
+    fireEvent.keyDown(next, { key: 'Tab' })
+    expect(document.activeElement).toBe(close)
+    fireEvent.keyDown(close, { key: 'Tab', shiftKey: true })
+    expect(document.activeElement).toBe(next)
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
     expect(screen.queryByRole('dialog')).toBeNull()
+    expect(window.localStorage.getItem(BEGINNER_GUIDE_KEY)).toBe('seen')
+    expect(
+      (screen.getByLabelText('代理链接') as HTMLTextAreaElement).value,
+    ).toBe('')
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole('button', { name: '新手模式' }),
+      ),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: '新手模式' }))
+    expect(screen.getByRole('dialog')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }))
+    fireEvent.change(screen.getByLabelText('粘贴代理链接'), {
+      target: { value: exampleLink },
+    })
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    fireEvent.click(screen.getByRole('button', { name: '新手模式' }))
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }))
+    expect(
+      (screen.getByLabelText('粘贴代理链接') as HTMLTextAreaElement).value,
+    ).toBe('')
+    fireEvent.click(screen.getByRole('button', { name: '退出新手模式' }))
   })
 
-  it('英文界面显示空白的新手向导', () => {
+  it('英文界面可手动打开完整新手模式', () => {
     render(<App />)
     fireEvent.click(screen.getByRole('button', { name: 'Switch to English' }))
-    fireEvent.click(
-      screen.getByText('Enterprise / home intranet DNS (optional)'),
-    )
-    fireEvent.click(screen.getByRole('button', { name: 'Setup guide' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Beginner mode' }))
     expect(
-      screen.getByRole('dialog', { name: 'Intranet DNS setup guide' }),
+      screen.getByRole('dialog', {
+        name: 'Beginner mode: build Clash YAML',
+      }),
     ).toBeTruthy()
-    expect(
-      screen.getByText(/does not provide a default domain or DNS server/),
-    ).toBeTruthy()
+    expect(screen.getByText(/simplified mode for the full page/)).toBeTruthy()
     expect(document.body.textContent).not.toContain('svc.cluster.local')
-    fireEvent.click(screen.getByRole('button', { name: 'Fill later' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Exit beginner mode' }))
     expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('新手模式的默认直连允许内网 DNS 留空使用 system', () => {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: '新手模式' }))
+    fireEvent.click(screen.getByRole('radio', { name: /默认直连/ }))
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }))
+    fireEvent.change(screen.getByLabelText('粘贴代理链接'), {
+      target: { value: exampleLink },
+    })
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }))
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }))
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }))
+    fireEvent.click(screen.getByLabelText('我需要访问公司或家庭内网'))
+    fireEvent.change(screen.getByLabelText('内网域名后缀'), {
+      target: { value: 'corp.example' },
+    })
+    expect(
+      (screen.getByLabelText('内网 DNS（可留空）') as HTMLTextAreaElement)
+        .value,
+    ).toBe('')
+    fireEvent.click(screen.getByRole('button', { name: '下一步' }))
+    fireEvent.click(screen.getByRole('button', { name: '应用并转换' }))
+
+    const config = parse(output()) as {
+      dns: { 'nameserver-policy': Record<string, string[]> }
+      rules: string[]
+    }
+    expect(config.dns['nameserver-policy']['+.corp.example']).toEqual([
+      'system',
+    ])
+    expect(config.rules).toContain('DOMAIN-SUFFIX,corp.example,DIRECT')
   })
 
   it('内网多后缀生成专用 DNS、fake-IP 排除和直连，并校验非法行', () => {

@@ -1,4 +1,9 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  BEGINNER_GUIDE_KEY,
+  markBeginnerGuideSeen,
+  shouldOpenBeginnerGuide,
+} from '../src/settings/onboarding'
 import {
   defaultPresets,
   emptySettings,
@@ -18,6 +23,7 @@ const legacy = {
 
 describe('routing settings storage', () => {
   beforeEach(() => window.localStorage.clear())
+  afterEach(() => vi.restoreAllMocks())
 
   it('migrates valid version 1 settings to safe defaults for new fields', () => {
     window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(legacy))
@@ -34,6 +40,28 @@ describe('routing settings storage', () => {
         presets: defaultPresets,
       },
     })
+  })
+
+  it('tracks only whether the beginner guide was seen', () => {
+    expect(shouldOpenBeginnerGuide()).toBe(true)
+    expect(markBeginnerGuideSeen()).toBe(true)
+    expect(window.localStorage.getItem(BEGINNER_GUIDE_KEY)).toBe('seen')
+    expect(shouldOpenBeginnerGuide()).toBe(false)
+    expect(window.localStorage).toHaveLength(1)
+  })
+
+  it('reports a rejected beginner guide marker write', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('SecurityError')
+    })
+    expect(markBeginnerGuideSeen()).toBe(false)
+  })
+
+  it('opens the beginner guide when its marker cannot be read', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('SecurityError')
+    })
+    expect(shouldOpenBeginnerGuide()).toBe(true)
   })
 
   it('round-trips the direct mode, service presets, and CGNAT option', () => {
