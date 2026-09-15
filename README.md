@@ -6,7 +6,7 @@
 
 ToClash 不提供代理节点，也不会替你连接 VPN。请先准备可用的代理链接，以及支持 Mihomo 配置的客户端。
 
-当前代码版本：**v0.3.5**。内网 DNS 区域提供弹窗式新手填写引导，所有输入默认留空，只在用户确认后写回表单；继续保留 macOS Edge / Chromium 使用 `.local` 内网域名时的 Clash Verge 提示。已发布的 v0.3.3 详见[版本说明](docs/RELEASE_v0.3.3.md)。
+当前代码版本：**v0.3.5**。内网 DNS 区域提供弹窗式新手填写引导，所有输入默认留空，只在用户确认后写回表单；继续保留 macOS Edge / Chromium 使用 `.local` 内网域名时的 Clash Verge 提示。[打开 v0.3.5 Pages 预览](https://preview-v0-3-5-onboarding.to-clash.pages.dev/)；已发布的 v0.3.3 详见[版本说明](docs/RELEASE_v0.3.3.md)。
 
 ## 第一次使用
 

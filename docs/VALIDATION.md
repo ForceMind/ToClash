@@ -13,11 +13,14 @@
 | `npm run build` | 通过，包含 TypeScript 构建并生成 v0.3.5 `dist/` |
 | 本机 Microsoft Edge 运行 `npm run test:browser` | 8/8 通过：桌面 1440×1000 浅色、手机 390×844 深色；覆盖空白向导、三步填写、应用回填、默认直连回归及既有转换流程 |
 | 实际截图检查 | 已查看桌面浅色和手机深色的向导弹窗；弹窗位于视口中心，文字、按钮和遮罩可见，无明显遮挡或横向溢出，页脚显示 v0.3.5 |
+| GitHub 分支 | `codex/v0.3.5-onboarding` 已推送；功能源提交 `315f6b173ac662fc93e9cacdae12549cc2ccfb36` 已回读一致 |
+| Cloudflare Pages 预览 | Wrangler 4.131.2 上传成功；回读为 `Preview` 环境、分支 `preview-v0-3-5-onboarding`、源 `315f6b1`；稳定地址与独立部署地址见[预览记录](RELEASE_v0.3.5_PREVIEW.md) |
+| 线上可见验证 | 新预览域名首次打开显示 v0.3.5；向导第 2 步域名值为空、焦点进入输入框且下一步禁用，未出现 `svc.cluster.local` |
 | `git diff --check` | 通过 |
 
 UI 单元测试同时覆盖：中文和英文文案、`aria-modal`、非法域名与 DNS 阻止下一步、关闭、稍后填写、Escape、空白首次启用自动打开、仅确认后应用。向导使用 `corp.example` 与 `192.0.2.53` 作为 placeholder；测试确认字段值仍为空，placeholder 不会写入表单或 LocalStorage。主表单已有用户输入时，向导显示现有值用于继续编辑，这不属于默认预填。
 
-浏览器测试与截图证明受测页面的向导交互和布局，不证明真实内网 DNS、VPN、Clash Verge 或 Edge `.local` 解析。当前阶段尚未推送或部署 v0.3.5；远程和 Pages 状态将在独立预览完成后记录。
+浏览器测试、截图和 Pages 预览证明受测页面的向导交互和布局，不证明真实内网 DNS、VPN、Clash Verge 或 Edge `.local` 解析。v0.3.5 只推送到独立 Git 分支并部署到独立 Pages 预览；`main`、生产 Pages 和生产域名没有更新。
 
 ---
 

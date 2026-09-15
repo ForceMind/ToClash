@@ -89,7 +89,7 @@ npx wrangler pages deploy /path/to/clean-dist --project-name to-clash --branch <
 
 Cloudflare 会为预览分支提供独立的 `pages.dev` 地址。先从部署列表回读环境、分支和提交，再访问预览地址核对页面版本与静态资源；预览部署不能作为生产域名已更新的证据。
 
-`clean-dist` 只应包含本次构建的 index.html、favicon.svg 和 assets 文件；从 macOS 外置磁盘复制时排除 `._*`、`.DS_Store`，不要上传节点配置或源码。上传后回读部署记录，并访问对应环境的地址核对页脚版本。最近一次生产部署见[v0.3.3 发布记录](RELEASE_v0.3.3.md)，当前预览见[v0.3.4 预览记录](RELEASE_v0.3.4_PREVIEW.md)。
+`clean-dist` 只应包含本次构建的 index.html、favicon.svg 和 assets 文件；从 macOS 外置磁盘复制时排除 `._*`、`.DS_Store`，不要上传节点配置或源码。上传后回读部署记录，并访问对应环境的地址核对页脚版本。最近一次生产部署见[v0.3.3 发布记录](RELEASE_v0.3.3.md)，当前预览见[v0.3.5 预览记录](RELEASE_v0.3.5_PREVIEW.md)；上一版 `.local` 提示预览保留在[v0.3.4 记录](RELEASE_v0.3.4_PREVIEW.md)。
 
 ```text
 Build command: npm run build
