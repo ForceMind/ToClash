@@ -2,7 +2,7 @@
 
 本轮新增完整 Clash / Mihomo YAML 的直接粘贴与 `.yaml` / `.yml` 文件导入。验证样例使用假 UUID、假服务器和文档保留地址；没有读取、保存、上传或测试用户真实节点凭据。导入后保留原 `proxies:` 节点（含 XHTTP）、未接管顶层字段 / DNS 字段 / 规则，重建 ToClash 管理的策略组、服务分流、DNS policy 和最终 `MATCH`。多 DNS 内网区域，以及常规模式中的 `system` 内网区域，保留原配置并显示不可用表单编辑的提示。
 
-环境：macOS、Node.js 26.7.0、npm 11.19.0、Google Chrome 153.0.8010.53。本轮为本地未发布变更；没有推送、部署、导入 Clash Verge、修改 macOS DNS / 系统代理 / TUN，线上正式版本仍为 v0.3.6。
+环境：macOS、Node.js 26.7.0、npm 11.19.0、Google Chrome 153.0.8010.53。功能源提交 `01892406772b3e312e114175cfaa32d2e0b11fe8` 已非强制推送到 `main`；没有导入 Clash Verge、修改 macOS DNS / 系统代理 / TUN。
 
 | 检查 | 当前结果 |
 | --- | --- |
@@ -13,12 +13,16 @@
 | Chrome Playwright 完整既有浏览器回归 | 桌面浅色 5/5、移动深色 5/5 通过；使用本机 Chrome，因为 Playwright 缓存的 headless shell 缺失 |
 | 最终构建后的 YAML 导入浏览器回归 | 桌面浅色、移动深色各 1/1 通过：粘贴、文件导入、XHTTP 与未接管字段保留、表单回填、凭据不进入 LocalStorage、无横向溢出 |
 | 实际截图检查 | 已查看桌面浅色和移动深色导入截图；YAML 输入 / 输出、长表单、文件按钮和页脚可见，无明显重叠或横向溢出 |
+| GitHub CI | [35685317450](https://github.com/ForceMind/ToClash/actions/runs/35685317450) 通过 |
+| GitHub Pages | [35685317534](https://github.com/ForceMind/ToClash/actions/runs/35685317534) 通过 |
+| Cloudflare Pages | `Production` / `main` / `0189240` 已回读；部署 [64bd7e8b.to-clash.pages.dev](https://64bd7e8b.to-clash.pages.dev/) |
+| 三个生产入口 | 已实际打开 [自定义域名](https://toclash.xincreates.com/)、[Cloudflare 默认域名](https://to-clash.pages.dev/) 与 [GitHub Pages](https://forcemind.github.io/ToClash/)；均显示 v0.3.7、新 YAML 输入和新手模式 |
 | `npm run test:mihomo` / `test:mihomo:dns` | 未执行：当前工作区未提供 Mihomo 二进制及 GeoSite / GeoIP 测试数据；YAML AST 往返与生成规则由单元测试覆盖，但不替代真实核心验收 |
 | 真实节点、VPN、企业 DNS、Clash Verge / Edge 流量 | 未验证；该范围需要用户自己的客户端和网络环境 |
 
 Node 26 的实验性全局 Web Storage 会遮蔽 Vitest 2 注入的 JSDOM `localStorage`。测试专用 `tests/setup.ts` 显式指向 JSDOM storage；生产代码和浏览器持久化路径未改变。新增回归覆盖 YAML 语法 / 无节点失败、YAML 指令、链接输入回归、完整默认直连服务集、XHTTP 原样保留、未接管配置 / 规则位置、多 DNS 和常规模式 `system` 内网保护、页面粘贴、文件读取和存储边界。
 
-浏览器和单元证据证明受测的本地静态页面行为与 YAML 结构；不证明真实节点可连接、DNS policy 在用户的 Mihomo 核心版本中被接受、公司内网可达、VPN 路由正确，或浏览器请求实际进入 Clash。发布 / 生产证据仍以以下 v0.3.6 历史记录为准。
+浏览器和单元证据证明受测的本地静态页面行为与 YAML 结构，以及三处静态生产入口已更新；不证明真实节点可连接、DNS policy 在用户的 Mihomo 核心版本中被接受、公司内网可达、VPN 路由正确，或浏览器请求实际进入 Clash。正式发布细节见[v0.3.7 发布记录](RELEASE_v0.3.7.md)。
 
 ---
 

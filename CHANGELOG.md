@@ -2,7 +2,7 @@
 
 这里记录 ToClash 的重要变更。
 
-## 0.3.7 — 未发布
+## 0.3.7 — 2026-09-22
 
 - 支持在主输入框直接粘贴完整 Clash / Mihomo YAML，并可选择 `.yaml` / `.yml` 文件导入。
 - 导入时保留原 `proxies:` 节点（包括 VLESS XHTTP 和未知节点字段）、未接管的顶层字段、额外 DNS 字段、策略组和规则；不将原 YAML 或节点凭据写入 LocalStorage。
