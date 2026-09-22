@@ -1,7 +1,7 @@
 import type { ConversionIssue, IssueCode } from '../core/model/proxy'
 
 const zhMessages: Record<IssueCode, string> = {
-  INVALID_URI: '代理链接格式无效。', INVALID_PORT: '代理端口无效。', MISSING_HOST: '代理链接缺少服务器地址。', INVALID_UUID: 'UUID 格式无效。', INVALID_BASE64: '无法解码 Base64 内容。', INVALID_JSON: '无法解析 VMess JSON 内容。', UNSUPPORTED_PROTOCOL: '不支持此协议。', UNSUPPORTED_TRANSPORT: '不支持此传输方式。', MISSING_FIELD: '代理链接缺少必要字段。', IGNORED_PARAMETER: '存在当前无法映射的参数，已忽略。', UNSUPPORTED_PLUGIN: '此 Shadowsocks 插件可能不受 Mihomo 支持。',
+  INVALID_URI: '代理链接格式无效。', INVALID_PORT: '代理端口无效。', MISSING_HOST: '代理链接缺少服务器地址。', INVALID_UUID: 'UUID 格式无效。', INVALID_BASE64: '无法解码 Base64 内容。', INVALID_JSON: '无法解析 VMess JSON 内容。', INVALID_YAML: 'YAML 格式无效。', INVALID_CONFIG: 'YAML 缺少可用的 proxies 节点列表，或节点名称冲突。', UNSUPPORTED_CONFIG: '部分配置将按原样保留，暂不能在表单中编辑。', UNSUPPORTED_PROTOCOL: '不支持此协议。', UNSUPPORTED_TRANSPORT: '不支持此传输方式。', MISSING_FIELD: '代理链接缺少必要字段。', IGNORED_PARAMETER: '存在当前无法映射的参数，已忽略。', UNSUPPORTED_PLUGIN: '此 Shadowsocks 插件可能不受 Mihomo 支持。',
 }
 
 function zhMessage(issue: ConversionIssue): string {

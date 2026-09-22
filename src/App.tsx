@@ -11,7 +11,10 @@ import { OutputPanel } from './components/OutputPanel'
 import { RoutingOptions } from './components/RoutingOptions'
 import { RuleSettings } from './components/RuleSettings'
 import { ThemeToggle } from './components/ThemeToggle'
-import { convertLinks } from './core/parser'
+import {
+  convertInput,
+  type SourceConversionResult,
+} from './core/importer/mihomo'
 import { buildRulePlan } from './core/rules/plan'
 import type { CustomRouting, RoutingWarning } from './core/rules/types'
 import { serializeMihomo, type OutputFormat } from './core/serializer/yaml'
@@ -47,9 +50,7 @@ function warningMessage(warning: RoutingWarning, zh: boolean): string {
 export default function App() {
   const [input, setInput] = useState('')
   const [format, setFormat] = useState<OutputFormat>('full')
-  const [result, setResult] = useState<ReturnType<typeof convertLinks> | null>(
-    null,
-  )
+  const [result, setResult] = useState<SourceConversionResult | null>(null)
   const [notice, setNotice] = useState('')
   const [dark, setDark] = useState(
     () => window.matchMedia('(prefers-color-scheme: dark)').matches,
@@ -163,8 +164,8 @@ export default function App() {
     if (routingInvalid) return { output: '', failed: false, warnings: [] }
     try {
       const warnings = format === 'full' ? buildRulePlan(routing).warnings : []
-      const output = result?.nodes.length
-        ? serializeMihomo(result.nodes, format, routing)
+      const output = result?.success
+        ? serializeMihomo(result.nodes, format, routing, result.imported)
         : ''
       return { output, failed: false, warnings }
     } catch {
@@ -185,9 +186,55 @@ export default function App() {
     setResult(null)
   }
 
+  const applyImportedRouting = (imported: SourceConversionResult): boolean => {
+    if (imported.source !== 'yaml' || !imported.recoveredRouting) return false
+    const recovered = imported.recoveredRouting
+    setMode(recovered.mode)
+    setPresets(recovered.presets)
+    setDirectInput(recovered.directDomains.join('\n'))
+    setProxyInput(recovered.proxyDomains.join('\n'))
+    setIntranetEnabled(recovered.intranetEnabled)
+    setIntranetSuffixInput(recovered.intranetSuffixInput)
+    setIntranetDnsInput(recovered.intranetDnsInput)
+    setBypassCgnat(recovered.bypassCgnat)
+    return true
+  }
+
   const convert = () => {
     invalidateNotice()
-    setResult(convertLinks(input))
+    const converted = convertInput(input)
+    setResult(converted)
+    if (converted.source === 'yaml') {
+      if (applyImportedRouting(converted)) {
+        setNotice(
+          zh
+            ? `已导入 ${converted.success} 个节点，并载入可识别的 ToClash 分流设置。`
+            : `Imported ${converted.success} nodes and recognized ToClash routing settings.`,
+        )
+      } else {
+        setNotice(
+          zh
+            ? '无法导入 YAML，请检查文件内容。'
+            : 'Could not import the YAML. Check the file contents.',
+        )
+      }
+    }
+  }
+
+  const importYaml = (value: string) => {
+    invalidateNotice()
+    setInput(value)
+    const imported = convertInput(value)
+    setResult(imported)
+    if (!applyImportedRouting(imported)) {
+      setNotice(zh ? '无法导入 YAML，请检查文件内容。' : 'Could not import the YAML. Check the file contents.')
+      return
+    }
+    setNotice(
+      zh
+        ? `已导入 ${imported.success} 个节点，并载入可识别的 ToClash 分流设置。`
+        : `Imported ${imported.success} nodes and recognized ToClash routing settings.`,
+    )
   }
 
   const clear = () => {
@@ -222,7 +269,7 @@ export default function App() {
     setIntranetEnabled(values.intranetEnabled)
     setIntranetSuffixInput(values.intranetSuffixInput)
     setIntranetDnsInput(values.intranetDnsInput)
-    setResult(convertLinks(values.input))
+    setResult(convertInput(values.input))
     closeBeginnerGuide()
   }
 
@@ -343,13 +390,25 @@ export default function App() {
           </h1>
           <p className="mt-3 text-slate-600 dark:text-slate-400">
             {zh
-              ? '将代理链接转换为 Clash / Mihomo 配置。所有数据仅在浏览器本地处理。'
-              : 'Convert proxy links to Clash / Mihomo config. Everything stays in your browser.'}
+              ? '将代理链接或已有 YAML 转换为可编辑的 Clash / Mihomo 配置。所有数据仅在浏览器本地处理。'
+              : 'Convert proxy links or existing YAML into editable Clash / Mihomo config. Everything stays in your browser.'}
           </p>
         </div>
         <div className="grid items-start gap-7 lg:grid-cols-2">
           <section className="min-w-0 space-y-5">
-            <InputPanel value={input} onChange={changeInput} zh={zh} />
+            <InputPanel
+              value={input}
+              onChange={changeInput}
+              onYamlImport={importYaml}
+              onYamlImportError={() =>
+                setNotice(
+                  zh
+                    ? '无法读取 YAML 文件，请检查文件权限后重试。'
+                    : 'Could not read the YAML file. Check its permissions and try again.',
+                )
+              }
+              zh={zh}
+            />
             <div className="flex flex-wrap items-end justify-between gap-4">
               <FormatSelector
                 value={format}
@@ -495,9 +554,13 @@ export default function App() {
             )}
             {result && (
               <div className="text-sm font-medium" aria-live="polite">
-                {zh
-                  ? `检测到 ${result.total} 条链接 · 成功 ${result.success} 条 · 失败 ${result.failed} 条`
-                  : `${result.total} links detected · ${result.success} converted · ${result.failed} failed`}
+                {result.source === 'yaml'
+                  ? zh
+                    ? `YAML 节点 ${result.total} 个 · 可导出 ${result.success} 个 · 失败 ${result.failed} 个`
+                    : `YAML proxies ${result.total} · usable ${result.success} · failed ${result.failed}`
+                  : zh
+                    ? `检测到 ${result.total} 条链接 · 成功 ${result.success} 条 · 失败 ${result.failed} 条`
+                    : `${result.total} links detected · ${result.success} converted · ${result.failed} failed`}
               </div>
             )}
             <ErrorList

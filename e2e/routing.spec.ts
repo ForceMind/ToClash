@@ -232,7 +232,9 @@ test('routing survives reload and a new tab while node input does not', async ({
   await page.getByLabel('内网域名后缀（每行一个）').fill('corp.example')
   await page.getByLabel('内网 DNS 服务器（每行一个）').fill('192.0.2.53')
   await page.reload()
-  await expect(page.getByLabel('代理链接', { exact: true })).toHaveValue('')
+  await expect(
+    page.getByLabel('代理链接或 Clash YAML', { exact: true }),
+  ).toHaveValue('')
   await page.locator('summary').filter({ hasText: '自定义网站分流' }).click()
   await expect(
     page.getByLabel('第 1 步：始终直连', { exact: true }),

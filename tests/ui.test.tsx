@@ -17,7 +17,7 @@ const exampleLink =
   'vless://00000000-0000-4000-8000-000000000000@example.com:443'
 
 function convertExample(): void {
-  fireEvent.change(screen.getByLabelText('代理链接'), {
+  fireEvent.change(screen.getByLabelText('代理链接或 Clash YAML'), {
     target: { value: exampleLink },
   })
   fireEvent.click(screen.getByRole('button', { name: '转换' }))
@@ -88,7 +88,7 @@ describe('界面与分流引导', () => {
     first.unmount()
     render(<App />)
     expect(
-      (screen.getByLabelText('代理链接') as HTMLTextAreaElement).value,
+      (screen.getByLabelText('代理链接或 Clash YAML') as HTMLTextAreaElement).value,
     ).toBe('')
     expect(
       (screen.getByLabelText('第 2 步：始终代理') as HTMLTextAreaElement).value,
@@ -158,7 +158,7 @@ describe('界面与分流引导', () => {
 
   it('中文警告保留被忽略的参数名称', () => {
     render(<App />)
-    fireEvent.change(screen.getByLabelText('代理链接'), {
+    fireEvent.change(screen.getByLabelText('代理链接或 Clash YAML'), {
       target: {
         value:
           'vless://00000000-0000-4000-8000-000000000000@example.com:443?unknown=value',
@@ -168,6 +168,98 @@ describe('界面与分流引导', () => {
     expect(
       screen.getByText('第 1 行：参数“unknown”当前无法映射到 Mihomo，已忽略。'),
     ).toBeTruthy()
+  })
+
+  it('直接粘贴 YAML 后保留节点并载入可编辑的分流设置，不保存凭据', async () => {
+    render(<App />)
+    const yaml = `mixed-port: 7890
+proxies:
+  - name: Imported XHTTP
+    type: vless
+    server: edge.example.test
+    port: 443
+    uuid: 00000000-0000-4000-8000-000000000000
+    encryption: none
+    tls: true
+    network: xhttp
+    xhttp-opts:
+      path: /
+      mode: auto
+rules:
+  - DOMAIN-SUFFIX,corp.example,DIRECT
+  - DOMAIN-SUFFIX,bovada.lv,FORCE_PROXY
+  - DOMAIN-SUFFIX,bovada.lv,REJECT
+  - DOMAIN-SUFFIX,openai.com,FORCE_PROXY
+  - DOMAIN-SUFFIX,openai.com,REJECT
+  - MATCH,DIRECT
+dns:
+  nameserver-policy:
+    +.corp.example:
+      - udp://192.0.2.53:53
+`
+    fireEvent.change(screen.getByLabelText('代理链接或 Clash YAML'), {
+      target: { value: yaml },
+    })
+    fireEvent.click(screen.getByRole('button', { name: '转换' }))
+
+    await waitFor(() => {
+      expect(output()).toContain('xhttp-opts:')
+      expect(output()).toContain('DOMAIN-SUFFIX,bovada.lv,FORCE_PROXY')
+    })
+    expect((screen.getByLabelText('网络模式') as HTMLSelectElement).value).toBe(
+      'direct',
+    )
+    fireEvent.click(screen.getByText('自定义网站分流（可选）'))
+    expect(
+      (screen.getByLabelText('第 2 步：始终代理') as HTMLTextAreaElement)
+        .value,
+    ).toBe('bovada.lv')
+    fireEvent.click(screen.getByText('企业 / 家庭内网 DNS（可选）'))
+    expect(
+      (screen.getByLabelText('内网域名后缀（每行一个）') as HTMLTextAreaElement)
+        .value,
+    ).toBe('corp.example')
+    expect(
+      (
+        screen.getByLabelText(
+          '内网 DNS 服务器（可留空使用系统 DNS）',
+        ) as HTMLTextAreaElement
+      ).value,
+    ).toBe('udp://192.0.2.53:53')
+    await waitFor(() => {
+      const stored = window.localStorage.getItem('toclash.routing.v1') ?? ''
+      expect(stored).not.toContain('00000000-0000-4000-8000-000000000000')
+      expect(stored).not.toContain('edge.example.test')
+    })
+  })
+
+  it('从 YAML 文件读取后立即导入', async () => {
+    render(<App />)
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement
+    const file = {
+      text: () =>
+        Promise.resolve(`proxies:
+  - name: Imported file node
+    type: vless
+    server: edge.example.test
+    port: 443
+    uuid: 00000000-0000-4000-8000-000000000000
+rules:
+  - MATCH,DIRECT
+`),
+    } as File
+    Object.defineProperty(fileInput, 'files', {
+      configurable: true,
+      value: [file],
+    })
+    fireEvent.change(fileInput)
+
+    await waitFor(() => {
+      expect(output()).toContain('name: Imported file node')
+      expect(screen.getByRole('status').textContent).toContain('已导入 1 个节点')
+    })
   })
 
   it('引导用户添加始终直连和始终代理规则', () => {
@@ -340,7 +432,7 @@ describe('界面与分流引导', () => {
 
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(
-      (screen.getByLabelText('代理链接') as HTMLTextAreaElement).value,
+      (screen.getByLabelText('代理链接或 Clash YAML') as HTMLTextAreaElement).value,
     ).toBe(`${exampleLink}\nnot-a-link`)
     expect(output()).toContain('DOMAIN-SUFFIX,bank.example,DIRECT')
     expect(output()).toContain('DOMAIN-SUFFIX,video.example,FORCE_PROXY')
@@ -375,7 +467,7 @@ describe('界面与分流引导', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(window.localStorage.getItem(BEGINNER_GUIDE_KEY)).toBe('seen')
     expect(
-      (screen.getByLabelText('代理链接') as HTMLTextAreaElement).value,
+      (screen.getByLabelText('代理链接或 Clash YAML') as HTMLTextAreaElement).value,
     ).toBe('')
     await waitFor(() =>
       expect(document.activeElement).toBe(
@@ -606,7 +698,11 @@ describe('界面与分流引导', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(true)
     expect(output()).toBe('')
     expect(
-      (screen.getByLabelText('Proxy links') as HTMLTextAreaElement).value,
+      (
+        screen.getByLabelText(
+          'Proxy links or Clash YAML',
+        ) as HTMLTextAreaElement
+      ).value,
     ).toBe('')
     expect(
       (screen.getByLabelText('Step 1: Always direct') as HTMLTextAreaElement)
@@ -673,7 +769,7 @@ describe('界面与分流引导', () => {
     await waitFor(() =>
       expect(screen.getByRole('status').textContent).toBe('已复制'),
     )
-    fill('代理链接', `${exampleLink}#changed`)
+    fill('代理链接或 Clash YAML', `${exampleLink}#changed`)
     expect(screen.getByRole('status').textContent).toBe('')
     expect(output()).toBe('')
   })
@@ -771,7 +867,7 @@ describe('界面与分流引导', () => {
     render(<App />)
     convertExample()
     fireEvent.click(screen.getByRole('button', { name: '示例' }))
-    const input = (screen.getByLabelText('代理链接') as HTMLTextAreaElement)
+    const input = (screen.getByLabelText('代理链接或 Clash YAML') as HTMLTextAreaElement)
       .value
     expect(input).toContain('00000000-0000-4000-8000-000000000000@example.com')
     expect(output()).toBe('')

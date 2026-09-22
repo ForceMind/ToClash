@@ -7,25 +7,28 @@ ToClash 是纯静态 React 应用，不包含后端、数据库、Service Worker
 ## 转换流程
 
 ```text
-文本输入 → 行归一化与协议识别 → 协议 Parser → 统一 ProxyNode
-        → Schema 校验与 Mihomo Transformer → YAML Serializer → 内存输出
+代理链接 → 行归一化与协议识别 → 协议 Parser → 统一 ProxyNode ──┐
+                                                                  ├→ YAML Serializer → 内存输出
+已有 YAML → YAML schema 校验 → 原节点 / 未接管字段保留 → 合并器 ─┘
 ```
 
-每种协议 parser 都是 `src/core/parser` 下的纯函数，优先使用标准 URL parser，IPv6 地址也由标准实现处理。VMess 与旧版 Shadowsocks 共用 UTF-8 Base64 工具。单行失败会转换为结构化问题，不会中断批次。
+每种协议 parser 都是 `src/core/parser` 下的纯函数，优先使用标准 URL parser，IPv6 地址也由标准实现处理。VMess 与旧版 Shadowsocks 共用 UTF-8 Base64 工具。单行失败会转换为结构化问题，不会中断批次。`src/core/importer/mihomo.ts` 只在输入看起来是 YAML 时解析完整配置，限制输入大小和 YAML alias 展开，要求存在唯一、非保留名的 `proxies:` 节点；不会将原始 YAML 回显到错误信息。
 
-`src/core/model/proxy.ts` 定义与输出格式无关的节点和错误类型；未来的 sing-box 或 Xray transformer 可以复用它。`mihomo.ts` 校验必要字段并保持 YAML 字段顺序稳定。React UI 通过核心层转换、规则规划与序列化 API 生成结果，代理链接始终留在组件内存，自定义分流和内网 DNS 由 `src/settings/storage.ts` 保存到 LocalStorage。`BeginnerGuideDialog` 只维护未确认草稿，最后一次性调用相同页面状态和转换 API；`src/settings/onboarding.ts` 只保存首次展示标记。
+`src/core/model/proxy.ts` 定义与输出格式无关的节点和错误类型；未来的 sing-box 或 Xray transformer 可以复用它。`mihomo.ts` 校验必要字段并保持 YAML 字段顺序稳定。React UI 通过核心层转换、规则规划与序列化 API 生成结果，代理链接和导入 YAML 始终留在组件内存，自定义分流和内网 DNS 由 `src/settings/storage.ts` 保存到 LocalStorage。`BeginnerGuideDialog` 只维护未确认草稿，最后一次性调用相同页面状态和转换 API；`src/settings/onboarding.ts` 只保存首次展示标记。
 
 ## 规则 / DNS 分支
 
 ```text
-URI → Parser → ProxyNode[] ────────────────────────────────┐
-                                                          ↓
-规则表单 → 规范化 → CustomRouting → buildRulePlan → Mihomo Transformer
-                                                          ↓
-                                 YAML Document → 内存输出 → 复制 / 下载
+URI → Parser → ProxyNode[] ─────────────────────────────────────────────┐
+                                                                          ↓
+YAML → importer → 原 `proxies:` / 未接管字段 ─→ mergeImportedMihomoConfig
+                                                                          ↓
+规则表单 → 规范化 → CustomRouting → buildRulePlan ───────────────────────┤
+                                                                          ↓
+                                               YAML Document → 内存输出 → 复制 / 下载
 ```
 
-协议 parser 不依赖规则或 YAML；规则规划器不访问节点凭据或 DOM；serializer 不解析 URI。未来输出器可以复用 `ProxyNode`，但不会直接复用带有 Mihomo 语义的 DNS 输出对象。
+协议 parser 不依赖规则或 YAML；规则规划器不访问节点凭据或 DOM；serializer 不解析 URI。YAML importer 保留原始节点对象，不把未知节点协议强行映射为 `ProxyNode`。未来输出器可以复用 `ProxyNode`，但不会直接复用带有 Mihomo 语义的 DNS 输出对象。
 
 | 职责 | 实现 | 验证 |
 | --- | --- | --- |
@@ -34,6 +37,7 @@ URI → Parser → ProxyNode[] ────────────────�
 | 静态服务清单、本地默认值 | `rules/presets.ts`、`rules/defaults.ts` | `tests/rules.test.ts` |
 | 规则、DNS、覆盖提示共同编译 | `rules/plan.ts` | rules tests、真实核心验证 |
 | 节点映射、组引用校验 | `transformer/mihomo.ts` | `tests/transformer.test.ts` |
+| 已有 YAML 导入、表单恢复、安全合并 | `importer/mihomo.ts` | `tests/importer.test.ts`、UI tests |
 | YAML AST 和分类注释 | `serializer/yaml.ts` | transformer tests、YAML 往返解析 |
 | 表单状态、错误阻断、浏览器操作 | `App.tsx`、`components/` | `tests/ui.test.tsx`、`e2e/routing.spec.ts` |
 
@@ -45,7 +49,7 @@ URI → Parser → ProxyNode[] ────────────────�
 
 `buildMihomoConfig(nodes, full, routing)` 验证必需字段、分配唯一安全名称，确认组引用存在且无环。完整配置至少需要一个有效节点；`full=false` 时只输出节点，不读取分流设置。
 
-`serializeMihomo` 使用 `yaml.Document` / AST 和稳定对象顺序，不对 YAML 成品做字符串替换，不插入不可信注释。分类注释来自静态元数据。
+`serializeMihomo` 使用 `yaml.Document` / AST 和稳定对象顺序，不对 YAML 成品做字符串替换，不插入不可信注释。分类注释来自静态元数据。导入配置时，`mergeImportedMihomoConfig` 保留原有节点、未知顶层 / DNS 字段、未接管的策略组和规则；将运行模式固定为 `rule`，并替换 ToClash 管理的本机、服务、自定义、策略组和最终 `MATCH` 范围，使表单修改能实际反映到导出结果。
 
 ### 规则与 DNS 一致性
 
@@ -64,6 +68,7 @@ Mihomo DNS 并非全局最长后缀查找：连续普通域名可以构成最长
 - 初始：简体中文、跟随系统初始主题、完整配置、29 项预设中原四项开启、其余 25 项关闭，内网及 CGNAT 关闭；没有 `seen` 标记时自动打开新手模式。
 - 新手模式：六步草稿覆盖模式、节点、常用服务、网站规则和内网，关闭不应用，最终确认后写回正式页面并调用同一转换函数；页头按钮可手动重开。
 - 编辑节点：立即清除旧结果，需要再次转换，避免复制过期结果。
+- 编辑 YAML：直接粘贴或文件导入后立即解析；成功时仅恢复可安全映射的表单项。原始 YAML 和节点凭据保持在组件内存，清空节点后释放。
 - 编辑规则：实时重新生成；非法输入暂停完整输出和复制/下载。
 - 切换仅 proxies：隐藏面板并暂时忽略规则错误；回到完整模式仍保留和验证表单值。
 - 内网开关：关闭时保留输入但不应用；开启后必须完整有效。
@@ -75,7 +80,7 @@ Mihomo DNS 并非全局最长后缀查找：连续普通域名可以构成最长
 - 输出失败：不显示原始异常/堆栈，只显示安全提示。
 - 复制/下载：仅显式点击触发。异步复制用修订号防止过期提示；下载移除临时元素并延迟释放 Blob URL。
 
-不存在远程同步、后台轮询或系统设置变更。持久化只包含分流设置及独立的 `seen` 标记，不包含节点凭据、账号、输入的代理链接或未应用的向导草稿。临时 Blob URL 仅用于下载，不将输入写入页面 URL。
+不存在远程同步、后台轮询或系统设置变更。持久化只包含分流设置及独立的 `seen` 标记，不包含节点凭据、账号、输入的代理链接、导入 YAML 或未应用的向导草稿。临时 Blob URL 仅用于下载，不将输入写入页面 URL。
 
 ### 验证边界
 

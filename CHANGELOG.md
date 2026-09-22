@@ -2,6 +2,18 @@
 
 这里记录 ToClash 的重要变更。
 
+## 0.3.7 — 未发布
+
+- 支持在主输入框直接粘贴完整 Clash / Mihomo YAML，并可选择 `.yaml` / `.yml` 文件导入。
+- 导入时保留原 `proxies:` 节点（包括 VLESS XHTTP 和未知节点字段）、未接管的顶层字段、额外 DNS 字段、策略组和规则；不将原 YAML 或节点凭据写入 LocalStorage。
+- 自动恢复可明确识别的默认直连模式、服务选择、自定义域名、统一内网 DNS 和 CGNAT；无法用单一表单表达的多 DNS 内网区域保留原配置并提示。
+- ToClash 接管并重建本机 / 服务 / 自定义分流、对应 DNS policy、策略组及最终 `MATCH`，未接管规则置于其后，避免旧 `MATCH` 提前截断导入规则。
+- 增加 YAML 导入、XHTTP 保留、规则顺序、DOM 粘贴和持久化边界回归；为 Node 26 + Vitest/JSDOM 的全局 Web Storage 冲突补充仅测试环境的 JSDOM storage 绑定。
+
+### English
+
+Added full Clash / Mihomo YAML paste and file import. Imported proxy nodes and unowned settings stay in memory and are preserved on export, while ToClash rebuilds the routing, DNS policies, owned groups, and final fallback controlled by the form.
+
 ## 0.3.6 — 2026-09-15
 
 - 将内网专用向导升级为全局六步新手模式，覆盖网络模式、代理链接、常用服务、网站分流、内网 DNS 和确认转换。

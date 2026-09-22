@@ -15,6 +15,8 @@
 
 无法安全映射到 Mihomo 的 URI 参数会显示警告，不会静默丢弃。
 
+v0.3.7 还支持完整 Clash / Mihomo YAML 的直接粘贴和 `.yaml` / `.yml` 文件导入。导入要求至少一个具备唯一名称和 `type` 的 `proxies:` 节点；节点对象（包括 XHTTP 和未知字段）原样保留。ToClash 接管 `mode: rule`、自身策略组、服务 / 自定义规则、DNS policy 和最终 `MATCH`，其余顶层字段、额外 DNS 字段、未接管规则与策略组继续保留。多 DNS 内网区域或常规模式的 `system` 区域不强行映射到单一表单，而是保留并提示。
+
 XHTTP 支持 URI 中的 `x_padding_bytes` / `x-padding-bytes`，以及 `extra` JSON 内的 `xPaddingBytes`，统一输出为 Mihomo `xhttp-opts.x-padding-bytes`。显式参数与 `extra` 重复时以显式参数为准。
 
 常规模式完整配置包含 `PROXY` 手动选择组、`AUTO` 自动选择组、仅代理的 `FORCE_PROXY` 组，以及局域网直连、可选内网规则、用户规则、服务预设、国内直连和 `MATCH,PROXY` 兜底。`AUTO` 的测速发生在用户导入配置后的 Mihomo 中，网页不会连接节点。默认直连模式只生成节点组成的 `FORCE_PROXY`，选中的服务强制代理，其他流量 `MATCH,DIRECT`；不生成 GeoSite / GeoIP 兜底或 `AUTO`。
@@ -31,7 +33,7 @@ VLESS / VMess 的 UUID 输入验证为 8-4-4-4-12 十六进制形状。它保留
 
 ## 本地开发
 
-需要 Node.js 20 或更高版本；推荐 Node.js 22（本轮验证版本）。Node.js 26 的实验性 Web Storage 与当前 Vitest / jsdom 存在冲突；测试请使用 Node.js 22，或临时设置 `NODE_OPTIONS=--no-experimental-webstorage`。
+需要 Node.js 20 或更高版本；推荐 Node.js 22。Node.js 26 的实验性全局 Web Storage 会遮蔽 Vitest 2 的 JSDOM storage；仓库测试通过 `tests/setup.ts` 显式绑定 JSDOM storage，因此无需为本项目设置 `NODE_OPTIONS=--no-experimental-webstorage`。
 
 ```bash
 npm install

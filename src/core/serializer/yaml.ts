@@ -1,4 +1,8 @@
 import { Document, isMap, isScalar, isSeq } from 'yaml'
+import {
+  mergeImportedMihomoConfig,
+  type ImportedMihomoConfig,
+} from '../importer/mihomo'
 import type { ProxyNode } from '../model/proxy'
 import { buildMihomoConfig } from '../transformer/mihomo'
 import type { CustomRouting } from '../transformer/mihomo'
@@ -6,9 +10,21 @@ import { buildRulePlan } from '../rules/plan'
 
 export type OutputFormat = 'full' | 'proxies'
 
-export function serializeMihomo(nodes: ProxyNode[], format: OutputFormat, routing: CustomRouting = {}): string {
-  const doc = new Document(buildMihomoConfig(nodes, format === 'full', routing), { aliasDuplicateObjects: false })
-  if (format === 'full') {
+export function serializeMihomo(
+  nodes: ProxyNode[],
+  format: OutputFormat,
+  routing: CustomRouting = {},
+  imported?: ImportedMihomoConfig,
+): string {
+  const full = format === 'full'
+  const built = imported
+    ? mergeImportedMihomoConfig(imported, full, routing)
+    : {
+        config: buildMihomoConfig(nodes, full, routing),
+        sections: full ? buildRulePlan(routing).sections : [],
+      }
+  const doc = new Document(built.config, { aliasDuplicateObjects: false })
+  if (full) {
     const comments: Record<string, string> = {
       'proxy-groups': routing.mode === 'direct' ? ' 代理组：FORCE_PROXY 仅包含代理节点' : ' 代理组：PROXY 可手动直连；FORCE_PROXY 仅包含代理节点；AUTO 自动选择',
       dns: routing.mode === 'direct' ? ' DNS：默认使用系统 DNS；直连流量保留指定内网 DNS 策略' : ' DNS：域名策略与分流保持一致；内网域名必须填写可达的内网 DNS',
@@ -28,7 +44,7 @@ export function serializeMihomo(nodes: ProxyNode[], format: OutputFormat, routin
     const rules = doc.get('rules', true)
     if (isSeq(rules)) {
       let index = 0
-      for (const section of buildRulePlan(routing).sections) {
+      for (const section of built.sections) {
         const first = rules.items[index]
         if (section.rules.length && isScalar(first)) {
           first.commentBefore = ` ${section.comment}`

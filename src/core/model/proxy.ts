@@ -36,7 +36,7 @@ export interface ProxyNode {
   plugin?: PluginOptions
 }
 
-export type IssueCode = 'INVALID_URI' | 'INVALID_PORT' | 'MISSING_HOST' | 'INVALID_UUID' | 'INVALID_BASE64' | 'INVALID_JSON' | 'UNSUPPORTED_PROTOCOL' | 'UNSUPPORTED_TRANSPORT' | 'MISSING_FIELD' | 'IGNORED_PARAMETER' | 'UNSUPPORTED_PLUGIN'
+export type IssueCode = 'INVALID_URI' | 'INVALID_PORT' | 'MISSING_HOST' | 'INVALID_UUID' | 'INVALID_BASE64' | 'INVALID_JSON' | 'INVALID_YAML' | 'INVALID_CONFIG' | 'UNSUPPORTED_CONFIG' | 'UNSUPPORTED_PROTOCOL' | 'UNSUPPORTED_TRANSPORT' | 'MISSING_FIELD' | 'IGNORED_PARAMETER' | 'UNSUPPORTED_PLUGIN'
 export interface ConversionIssue { line: number; code: IssueCode; message: string; protocol?: string }
 export interface ParseResult { node: ProxyNode; warnings: Omit<ConversionIssue, 'line'>[] }
 export interface ConversionResult { nodes: ProxyNode[]; errors: ConversionIssue[]; warnings: ConversionIssue[]; total: number; success: number; failed: number }
