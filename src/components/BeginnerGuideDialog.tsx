@@ -278,8 +278,8 @@ export function BeginnerGuideDialog({
               </legend>
               <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                 {zh
-                  ? '这里提供四个常用开关；完成后可在完整页面继续选择全部 29 项服务。'
-                  : 'These four common switches keep the guide simple. The full page provides all 29 services.'}
+                  ? `这里提供四个常用开关；完成后可在完整页面继续选择全部 ${RULE_PRESETS.length} 项服务。`
+                  : `These four common switches keep the guide simple. The full page provides all ${RULE_PRESETS.length} services.`}
               </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {commonPresetIds.map((id, index) => {

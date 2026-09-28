@@ -1,10 +1,10 @@
 export type PresetId =
   | 'openai' | 'claude' | 'developer' | 'google'
-  | 'x' | 'tiktok' | 'facebook' | 'instagram' | 'threads' | 'reddit' | 'telegram' | 'whatsapp' | 'discord' | 'linkedin'
+  | 'x' | 'tiktok' | 'meta' | 'facebook' | 'instagram' | 'threads' | 'reddit' | 'telegram' | 'whatsapp' | 'discord' | 'linkedin' | 'pinterest' | 'snapchat'
   | 'netflix' | 'disney' | 'primevideo' | 'spotify' | 'twitch'
-  | 'perplexity' | 'grok' | 'microsoft' | 'apple' | 'notion' | 'slack' | 'zoom' | 'dropbox' | 'steam' | 'epic'
+  | 'perplexity' | 'grok' | 'microsoft' | 'apple' | 'notion' | 'slack' | 'zoom' | 'dropbox' | 'figma' | 'adobe' | 'amazon' | 'aws' | 'cloudflare' | 'paypal' | 'stripe' | 'steam' | 'epic' | 'roblox'
 
-export type PresetCategory = 'ai' | 'social' | 'media' | 'work' | 'developer' | 'gaming'
+export type PresetCategory = 'ai' | 'social' | 'media' | 'work' | 'developer' | 'commerce' | 'gaming'
 
 export interface IntranetZone {
   suffix: string

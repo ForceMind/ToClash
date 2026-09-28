@@ -1,4 +1,22 @@
-# v0.3.7 YAML 导入本地验证（未发布，2026-09-22）
+# v0.3.8 服务目录扩展本地验证（未发布，2026-09-28）
+
+本批次新增 11 个独立服务开关：Meta / Meta AI / Quest、Amazon 购物、AWS 控制台、Cloudflare、Figma、Adobe、PayPal、Stripe、Pinterest、Snapchat、Roblox。总数为 40 项、7 个分类。启用任一新项后生成 `FORCE_PROXY`、紧随的 `REJECT` 与代理 DNS policy；新项默认关闭，旧存储缺失新字段时按关闭补齐。AWS 不加入承载客户站点的 `amazonaws.com`，Figma 不加入用户发布站点的 `figma.site`。
+
+| 检查 | 结果 |
+| --- | --- |
+| `npm run lint`、`npm run typecheck` | 通过 |
+| `npm test` | 9 个文件、242/242 通过；覆盖各新增项开关与 DNS、Meta 专项规则、AWS / Amazon / Cloudflare 域名边界和旧设置迁移 |
+| `npm run test:coverage` | 9 个文件、242/242 通过；核心行覆盖率 97.69% |
+| `npm run build` | 通过，生成本地 v0.3.8 `dist/` |
+| 本机 Chrome Playwright | 10/10 通过：桌面浅色和移动深色各 5 项；服务目录流程验证 Meta、AWS、PayPal 搜索与开关、规则、DNS、刷新恢复及无横向溢出 |
+| 实际截图检查 | 已查看 1440×1000 桌面浅色和 390×844 移动深色的服务目录完整截图；七类开关、输入输出与页脚可见，无明显遮挡或横向溢出 |
+| 真实 Mihomo / 生产页面 | 本批次尚未验证或发布 |
+
+本批次按用户确认的九类漏项实施；Amazon 与 AWS 分为两个开关。域名清单按各服务官方来源收敛为常用自有域名，不能定义或穷举所有美国公司、所有第三方依赖及动态 IP。生产页面在本地验收时仍为 v0.3.7。
+
+---
+
+# v0.3.7 YAML 导入本地验证（2026-09-22）
 
 本轮新增完整 Clash / Mihomo YAML 的直接粘贴与 `.yaml` / `.yml` 文件导入。验证样例使用假 UUID、假服务器和文档保留地址；没有读取、保存、上传或测试用户真实节点凭据。导入后保留原 `proxies:` 节点（含 XHTTP）、未接管顶层字段 / DNS 字段 / 规则，重建 ToClash 管理的策略组、服务分流、DNS policy 和最终 `MATCH`。多 DNS 内网区域，以及常规模式中的 `system` 内网区域，保留原配置并显示不可用表单编辑的提示。
 

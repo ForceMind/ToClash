@@ -2,6 +2,12 @@
 
 这里记录 ToClash 的重要变更。
 
+## 0.3.8 — 未发布
+
+- 增加 11 个独立服务开关：Meta / Meta AI / Quest、Amazon 购物、AWS 控制台、Cloudflare、Figma、Adobe、PayPal、Stripe、Pinterest、Snapchat、Roblox。服务目录新增“购物与支付”分类，总计 40 项。
+- 新开关默认关闭；启用后联动生成 `FORCE_PROXY`、相邻 `REJECT` 和代理 DNS policy。Facebook、Instagram、Threads、WhatsApp 原有开关保持独立。
+- AWS 仅覆盖控制台与登录域名；不把客户托管的 `amazonaws.com`、`cloudfront.net` 或 Figma 用户发布站点 `figma.site` 纳入预设。
+
 ## 0.3.7 — 2026-09-22
 
 - 支持在主输入框直接粘贴完整 Clash / Mihomo YAML，并可选择 `.yaml` / `.yml` 文件导入。

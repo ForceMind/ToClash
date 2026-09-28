@@ -8,6 +8,7 @@ export const PRESET_CATEGORIES: readonly { id: PresetCategory; nameZh: string; n
   { id: 'media', nameZh: '媒体与流媒体', nameEn: 'Media & streaming' },
   { id: 'work', nameZh: '工作与协作', nameEn: 'Work & collaboration' },
   { id: 'developer', nameZh: '开发者服务', nameEn: 'Developer services' },
+  { id: 'commerce', nameZh: '购物与支付', nameEn: 'Shopping & payments' },
   { id: 'gaming', nameZh: '游戏', nameEn: 'Gaming' },
 ]
 
@@ -42,6 +43,7 @@ export const RULE_PRESETS: readonly RulePreset[] = [
   },
   { id: 'x', category: 'social', nameZh: 'X / Twitter', nameEn: 'X / Twitter', defaultEnabled: false, rules: suffixes('x.com', 'twitter.com', 'twimg.com', 't.co') },
   { id: 'tiktok', category: 'social', nameZh: 'TikTok', nameEn: 'TikTok', defaultEnabled: false, rules: suffixes('tiktok.com', 'tiktokv.com', 'tiktokcdn.com', 'tiktokcdn-us.com', 'byteoversea.com', 'musical.ly', 'muscdn.com') },
+  { id: 'meta', category: 'social', nameZh: 'Meta / Meta AI / Quest', nameEn: 'Meta / Meta AI / Quest', defaultEnabled: false, rules: suffixes('meta.com', 'meta.ai', 'oculus.com') },
   { id: 'facebook', category: 'social', nameZh: 'Facebook', nameEn: 'Facebook', defaultEnabled: false, rules: suffixes('facebook.com', 'fb.com', 'fb.me', 'fbcdn.net', 'fbsbx.com') },
   { id: 'instagram', category: 'social', nameZh: 'Instagram', nameEn: 'Instagram', defaultEnabled: false, rules: suffixes('instagram.com', 'cdninstagram.com') },
   { id: 'threads', category: 'social', nameZh: 'Threads', nameEn: 'Threads', defaultEnabled: false, rules: suffixes('threads.com', 'threads.net') },
@@ -50,6 +52,8 @@ export const RULE_PRESETS: readonly RulePreset[] = [
   { id: 'whatsapp', category: 'social', nameZh: 'WhatsApp', nameEn: 'WhatsApp', defaultEnabled: false, rules: suffixes('whatsapp.com', 'whatsapp.net', 'wa.me') },
   { id: 'discord', category: 'social', nameZh: 'Discord', nameEn: 'Discord', defaultEnabled: false, rules: suffixes('discord.com', 'discordapp.com', 'discordapp.net', 'discord.gg', 'discord.media', 'discordcdn.com') },
   { id: 'linkedin', category: 'social', nameZh: 'LinkedIn', nameEn: 'LinkedIn', defaultEnabled: false, rules: suffixes('linkedin.com', 'licdn.com', 'lnkd.in') },
+  { id: 'pinterest', category: 'social', nameZh: 'Pinterest', nameEn: 'Pinterest', defaultEnabled: false, rules: suffixes('pinterest.com', 'pinimg.com') },
+  { id: 'snapchat', category: 'social', nameZh: 'Snapchat', nameEn: 'Snapchat', defaultEnabled: false, rules: suffixes('snapchat.com', 'snap.com', 'sc-cdn.net') },
   { id: 'netflix', category: 'media', nameZh: 'Netflix', nameEn: 'Netflix', defaultEnabled: false, rules: suffixes('netflix.com', 'netflix.net', 'nflxext.com', 'nflximg.com', 'nflximg.net', 'nflxvideo.net', 'fast.com') },
   { id: 'disney', category: 'media', nameZh: 'Disney+', nameEn: 'Disney+', defaultEnabled: false, rules: suffixes('disneyplus.com', 'disney-plus.net', 'disneyplus.net', 'bamgrid.com') },
   { id: 'primevideo', category: 'media', nameZh: 'Prime Video', nameEn: 'Prime Video', defaultEnabled: false, rules: suffixes('primevideo.com', 'amazonvideo.com', 'aiv-cdn.net') },
@@ -63,8 +67,16 @@ export const RULE_PRESETS: readonly RulePreset[] = [
   { id: 'slack', category: 'work', nameZh: 'Slack', nameEn: 'Slack', defaultEnabled: false, rules: suffixes('slack.com', 'slack-edge.com', 'slack-files.com', 'slackb.com') },
   { id: 'zoom', category: 'work', nameZh: 'Zoom', nameEn: 'Zoom', defaultEnabled: false, rules: suffixes('zoom.us', 'zoom.com', 'zoomgov.com', 'zoomcdn.com') },
   { id: 'dropbox', category: 'work', nameZh: 'Dropbox', nameEn: 'Dropbox', defaultEnabled: false, rules: suffixes('dropbox.com', 'dropboxapi.com', 'dropboxstatic.com', 'dropboxusercontent.com', 'getdropbox.com') },
+  { id: 'figma', category: 'work', nameZh: 'Figma', nameEn: 'Figma', defaultEnabled: false, rules: suffixes('figma.com', 'figmaweave.com') },
+  { id: 'adobe', category: 'work', nameZh: 'Adobe', nameEn: 'Adobe', defaultEnabled: false, rules: suffixes('adobe.com', 'adobe.io', 'adobelogin.com', 'adobe-identity.com', 'adobejanus.com', 'adobecc.com', 'adobeccstatic.com') },
+  { id: 'aws', category: 'developer', nameZh: 'AWS 控制台', nameEn: 'AWS Console', defaultEnabled: false, rules: suffixes('aws.amazon.com', 'signin.aws', 'awsapps.com') },
+  { id: 'cloudflare', category: 'developer', nameZh: 'Cloudflare', nameEn: 'Cloudflare', defaultEnabled: false, rules: suffixes('cloudflare.com') },
+  { id: 'amazon', category: 'commerce', nameZh: 'Amazon 购物', nameEn: 'Amazon Shopping', defaultEnabled: false, rules: suffixes('amazon.com') },
+  { id: 'paypal', category: 'commerce', nameZh: 'PayPal', nameEn: 'PayPal', defaultEnabled: false, rules: suffixes('paypal.com', 'paypalobjects.com') },
+  { id: 'stripe', category: 'commerce', nameZh: 'Stripe', nameEn: 'Stripe', defaultEnabled: false, rules: suffixes('stripe.com') },
   { id: 'steam', category: 'gaming', nameZh: 'Steam', nameEn: 'Steam', defaultEnabled: false, rules: suffixes('steampowered.com', 'steamcommunity.com', 'steamstatic.com', 'steamcontent.com', 'steam-chat.com', 'steamgames.com') },
   { id: 'epic', category: 'gaming', nameZh: 'Epic Games', nameEn: 'Epic Games', defaultEnabled: false, rules: suffixes('epicgames.com', 'epicgames.dev', 'unrealengine.com', 'fortnite.com') },
+  { id: 'roblox', category: 'gaming', nameZh: 'Roblox', nameEn: 'Roblox', defaultEnabled: false, rules: suffixes('roblox.com', 'rbxcdn.com') },
 ]
 
 export const DEFAULT_PRESETS: Record<PresetId, boolean> = Object.fromEntries(

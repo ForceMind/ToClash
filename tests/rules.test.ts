@@ -44,10 +44,41 @@ describe('service rule presets', () => {
 
   it('derives defaults and category labels from the catalogue', () => {
     expect(Object.fromEntries(RULE_PRESETS.map(({ id, defaultEnabled }) => [id, defaultEnabled]))).toEqual(DEFAULT_PRESETS)
-    expect(RULE_PRESETS).toHaveLength(29)
+    expect(RULE_PRESETS).toHaveLength(40)
     expect(new Set(RULE_PRESETS.map(({ id }) => id)).size).toBe(RULE_PRESETS.length)
-    expect(new Set(PRESET_CATEGORIES.map(({ id }) => id))).toEqual(new Set(['ai', 'social', 'media', 'work', 'developer', 'gaming']))
+    expect(new Set(PRESET_CATEGORIES.map(({ id }) => id))).toEqual(new Set(['ai', 'social', 'media', 'work', 'developer', 'commerce', 'gaming']))
     expect(RULE_PRESETS.find(({ id }) => id === 'threads')?.rules).toContainEqual({ type: 'DOMAIN-SUFFIX', value: 'threads.com' })
+  })
+
+  it('routes the Meta website, AI and Quest domains together when enabled', () => {
+    const enabled = buildRulePlan({ presets: { ...noPresets, meta: true }, mode: 'direct' })
+    const rules = rulesOf(enabled)
+    for (const domain of ['meta.com', 'meta.ai', 'oculus.com']) {
+      const index = rules.indexOf(`DOMAIN-SUFFIX,${domain},FORCE_PROXY`)
+      expect(index).toBeGreaterThanOrEqual(0)
+      expect(rules[index + 1]).toBe(`DOMAIN-SUFFIX,${domain},REJECT`)
+      expect(policyOf(enabled)[`+.${domain}`]).toEqual(proxyDns('FORCE_PROXY'))
+    }
+    expect(rules).not.toContain('DOMAIN-SUFFIX,facebook.com,FORCE_PROXY')
+  })
+
+  it('keeps AWS-only selection narrow and excludes shared hosting domains', () => {
+    const plan = buildRulePlan({
+      mode: 'direct',
+      presets: { ...noPresets, aws: true, cloudflare: true },
+    })
+    const rules = rulesOf(plan)
+    for (const domain of ['aws.amazon.com', 'signin.aws', 'awsapps.com', 'cloudflare.com']) {
+      expect(rules).toContain(`DOMAIN-SUFFIX,${domain},FORCE_PROXY`)
+      expect(policyOf(plan)[`+.${domain}`]).toEqual(proxyDns('FORCE_PROXY'))
+    }
+    expect(rules).not.toContain('DOMAIN-SUFFIX,amazon.com,FORCE_PROXY')
+    expect(rules).not.toContain('DOMAIN-SUFFIX,amazonaws.com,FORCE_PROXY')
+    expect(rules).not.toContain('DOMAIN-SUFFIX,cloudfront.net,FORCE_PROXY')
+    expect(rules).not.toContain('DOMAIN-SUFFIX,figma.site,FORCE_PROXY')
+    const shopping = rulesOf(buildRulePlan({ mode: 'direct', presets: { ...noPresets, amazon: true } }))
+    expect(shopping).toContain('DOMAIN-SUFFIX,amazon.com,FORCE_PROXY')
+    expect(shopping).not.toContain('DOMAIN-SUFFIX,aws.amazon.com,FORCE_PROXY')
   })
 
   it.each(RULE_PRESETS)('honors the on/off rule and DNS policy for $id', (preset) => {
@@ -64,13 +95,13 @@ describe('service rule presets', () => {
     }
   })
 
-  it('force-proxies every selected non-legacy service without adding broad shared CDNs', () => {
+  it('force-proxies every selected non-legacy service without adding shared hosting suffixes', () => {
     const selected = Object.fromEntries(RULE_PRESETS.filter(({ defaultEnabled }) => !defaultEnabled).map(({ id }) => [id, true]))
     const rules = rulesOf(buildRulePlan({ presets: selected }))
     for (const preset of RULE_PRESETS.filter(({ defaultEnabled }) => !defaultEnabled)) {
       for (const { type, value } of preset.rules) expect(rules).toContain(`${type},${value},FORCE_PROXY`)
     }
-    for (const forbidden of ['cloudfront.net', 'amazonaws.com', 'cloudflare.com', 'akamaized.net', 'fastly.net']) {
+    for (const forbidden of ['cloudfront.net', 'amazonaws.com', 'figma.site', 'akamaized.net', 'fastly.net']) {
       expect(rules).not.toContain(`DOMAIN-SUFFIX,${forbidden},FORCE_PROXY`)
     }
   })

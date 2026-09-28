@@ -34,7 +34,7 @@ test('real browser conversion, privacy, settings, download and keyboard workflow
   await expect(page.getByRole('button', { name: '下一步' })).toBeDisabled()
   await page.getByLabel('粘贴代理链接').fill(guideLink)
   await page.getByRole('button', { name: '下一步' }).click()
-  await expect(page.getByText(/全部 29 项服务/)).toBeVisible()
+  await expect(page.getByText(/全部 40 项服务/)).toBeVisible()
   await page.getByRole('button', { name: '下一步' }).click()
   await expect(page.getByLabel('始终直连', { exact: true })).toHaveValue('')
   await expect(page.getByLabel('始终代理', { exact: true })).toHaveValue('')
