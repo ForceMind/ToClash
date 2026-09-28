@@ -1,4 +1,4 @@
-# v0.3.8 服务目录扩展本地验证（未发布，2026-09-28）
+# v0.3.8 服务目录扩展与正式发布验证（2026-09-28）
 
 本批次新增 11 个独立服务开关：Meta / Meta AI / Quest、Amazon 购物、AWS 控制台、Cloudflare、Figma、Adobe、PayPal、Stripe、Pinterest、Snapchat、Roblox。总数为 40 项、7 个分类。启用任一新项后生成 `FORCE_PROXY`、紧随的 `REJECT` 与代理 DNS policy；新项默认关闭，旧存储缺失新字段时按关闭补齐。AWS 不加入承载客户站点的 `amazonaws.com`，Figma 不加入用户发布站点的 `figma.site`。
 
@@ -10,9 +10,12 @@
 | `npm run build` | 通过，生成本地 v0.3.8 `dist/` |
 | 本机 Chrome Playwright | 10/10 通过：桌面浅色和移动深色各 5 项；服务目录流程验证 Meta、AWS、PayPal 搜索与开关、规则、DNS、刷新恢复及无横向溢出 |
 | 实际截图检查 | 已查看 1440×1000 桌面浅色和 390×844 移动深色的服务目录完整截图；七类开关、输入输出与页脚可见，无明显遮挡或横向溢出 |
-| 真实 Mihomo / 生产页面 | 本批次尚未验证或发布 |
+| GitHub CI 与 Pages | 功能提交 `7615205` 的 [CI](https://github.com/ForceMind/ToClash/actions/runs/36392581346) 和 [GitHub Pages](https://github.com/ForceMind/ToClash/actions/runs/36392581309) 均成功 |
+| Cloudflare Pages | 部署列表回读为 `Production` / `main` / `7615205`，部署 ID `dd1f1991-c6fc-44aa-a6d3-f80aa351520b` |
+| 三个生产入口 | 实际打开 [自定义域名](https://toclash.xincreates.com/)、[Cloudflare 默认域名](https://to-clash.pages.dev/) 和 [GitHub Pages](https://forcemind.github.io/ToClash/)；均显示 v0.3.8；GitHub Pages 服务目录实际显示 40 项与新增开关 |
+| 真实 Mihomo / 节点与用户网络 | 本批次未执行；静态部署与 YAML 结构检查不证明实际节点、DNS 或业务访问 |
 
-本批次按用户确认的九类漏项实施；Amazon 与 AWS 分为两个开关。域名清单按各服务官方来源收敛为常用自有域名，不能定义或穷举所有美国公司、所有第三方依赖及动态 IP。生产页面在本地验收时仍为 v0.3.7。
+本批次按用户确认的九类漏项实施；Amazon 与 AWS 分为两个开关。域名清单按各服务官方来源收敛为常用自有域名，不能定义或穷举所有美国公司、所有第三方依赖及动态 IP。正式发布详情见[v0.3.8 发布记录](RELEASE_v0.3.8.md)。
 
 ---
 

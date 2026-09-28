@@ -23,7 +23,7 @@ XHTTP 支持 URI 中的 `x_padding_bytes` / `x-padding-bytes`，以及 `extra` J
 
 用户直连优先于用户代理和服务预设，但不能覆盖更优先的本机 / 局域网与内网保护。用户“始终代理”和 AI 预设使用 `FORCE_PROXY`；该组没有 `DIRECT`，对应规则后附同条件 `REJECT`，避免不支持 UDP 时落入后续直连规则。普通 `PROXY` 仍允许手动选择 `DIRECT`。
 
-当前本地版本有 40 项、7 类服务预设。既有 Codex / OpenAI、Claude / Anthropic、开发者服务 / GitHub、Google / YouTube 默认开启；其余 36 项默认关闭。常规模式保留 Google / YouTube 和 GitHub 的 `PROXY` 行为，其余选中服务使用 `FORCE_PROXY`。设置与 DNS 由同一规则计划生成，详见[服务目录](SERVICE_CATALOG.md)。预设按域名分流，不能保证 Telegram、Roblox 等客户端的 IP 直连或音视频流量。
+当前版本有 40 项、7 类服务预设。既有 Codex / OpenAI、Claude / Anthropic、开发者服务 / GitHub、Google / YouTube 默认开启；其余 36 项默认关闭。常规模式保留 Google / YouTube 和 GitHub 的 `PROXY` 行为，其余选中服务使用 `FORCE_PROXY`。设置与 DNS 由同一规则计划生成，详见[服务目录](SERVICE_CATALOG.md)。预设按域名分流，不能保证 Telegram、Roblox 等客户端的 IP 直连或音视频流量。
 
 本版的交付范围和验证边界见 [v0.3.3 发布记录](RELEASE_v0.3.3.md)。
 
@@ -91,7 +91,7 @@ npx wrangler pages deploy /path/to/clean-dist --project-name to-clash --branch <
 
 Cloudflare 会为预览分支提供独立的 `pages.dev` 地址。先从部署列表回读环境、分支和提交，再访问预览地址核对页面版本与静态资源；预览部署不能作为生产域名已更新的证据。
 
-`clean-dist` 只应包含本次构建的 index.html、favicon.svg 和 assets 文件；从 macOS 外置磁盘复制时排除 `._*`、`.DS_Store`，不要上传节点配置或源码。上传后回读部署记录，并访问对应环境的地址核对页脚版本。最近一次生产部署见[v0.3.7 正式发布记录](RELEASE_v0.3.7.md)，对应预览见[v0.3.6 预览记录](RELEASE_v0.3.6_PREVIEW.md)；前两版预览保留在[v0.3.5](RELEASE_v0.3.5_PREVIEW.md)和[v0.3.4](RELEASE_v0.3.4_PREVIEW.md)记录中。
+`clean-dist` 只应包含本次构建的 index.html、favicon.svg 和 assets 文件；从 macOS 外置磁盘复制时排除 `._*`、`.DS_Store`，不要上传节点配置或源码。上传后回读部署记录，并访问对应环境的地址核对页脚版本。最近一次生产部署见[v0.3.8 正式发布记录](RELEASE_v0.3.8.md)，历史预览见[v0.3.6 预览记录](RELEASE_v0.3.6_PREVIEW.md)；前两版预览保留在[v0.3.5](RELEASE_v0.3.5_PREVIEW.md)和[v0.3.4](RELEASE_v0.3.4_PREVIEW.md)记录中。
 
 ```text
 Build command: npm run build

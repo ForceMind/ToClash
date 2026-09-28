@@ -2,7 +2,7 @@
 
 这里记录 ToClash 的重要变更。
 
-## 0.3.8 — 未发布
+## 0.3.8 — 2026-09-28
 
 - 增加 11 个独立服务开关：Meta / Meta AI / Quest、Amazon 购物、AWS 控制台、Cloudflare、Figma、Adobe、PayPal、Stripe、Pinterest、Snapchat、Roblox。服务目录新增“购物与支付”分类，总计 40 项。
 - 新开关默认关闭；启用后联动生成 `FORCE_PROXY`、相邻 `REJECT` 和代理 DNS policy。Facebook、Instagram、Threads、WhatsApp 原有开关保持独立。
