@@ -1,3 +1,13 @@
+# v0.3.9 Spaceship 验证（2026-10-08）
+
+- 默认关闭的 Spaceship 新项覆盖 `spaceship.com`（包含 `www.spaceship.com`）及官网使用的 `spaceship-cdn.com`；开启后同时生成 `FORCE_PROXY`、相邻 `REJECT` 和对应代理 DNS policy。
+- 本地 lint、typecheck、规则 / 存储 / 界面 137 项测试与构建通过。Chrome 桌面浅色、移动深色服务目录流程 2/2 通过，验证搜索、默认值、规则、DNS 和刷新恢复；已查看桌面实际截图。
+- 功能提交 `37f35d2` 的完整 [CI](https://github.com/ForceMind/ToClash/actions/runs/37757103948) 和 [GitHub Pages 发布](https://github.com/ForceMind/ToClash/actions/runs/37757103889) 成功。
+- Cloudflare 列表回读 `Production/main/37f35d2`；三个生产入口实际显示 v0.3.9，主站目录显示 41 项及未勾选的 Spaceship。
+- 本批次验证生成规则与页面，未使用真实节点测试 Spaceship 的代理访问。发布详情见[v0.3.9 正式发布记录](RELEASE_v0.3.9.md)。
+
+---
+
 # v0.3.8 服务目录扩展与正式发布验证（2026-09-28）
 
 本批次新增 11 个独立服务开关：Meta / Meta AI / Quest、Amazon 购物、AWS 控制台、Cloudflare、Figma、Adobe、PayPal、Stripe、Pinterest、Snapchat、Roblox。总数为 40 项、7 个分类。启用任一新项后生成 `FORCE_PROXY`、紧随的 `REJECT` 与代理 DNS policy；新项默认关闭，旧存储缺失新字段时按关闭补齐。AWS 不加入承载客户站点的 `amazonaws.com`，Figma 不加入用户发布站点的 `figma.site`。
