@@ -145,7 +145,7 @@ v0.3.3 增加分类、搜索和独立开关，完整目录、来源和共享域�
 
 共享主机使用精确匹配，避免代理整个 `cloudflare.com`、`googleusercontent.com` 等大型服务空间。精确规则仍会影响同主机上的其他用途，例如共享验证码、存储桶；可以关闭相关预设或显式直连。该清单并非所有支付、遥测、SSO 或地区域名的全集，不能承诺完成所有账号验证。无进程级规则，也不会修改 Managed Provider 或 AgentBox 的环境变量。
 
-Claude 的目的 IP 规则使用 `IP-CIDR` / `IP-CIDR6`，依次生成 `FORCE_PROXY,no-resolve` 和 `REJECT,no-resolve`；没有对应 DNS policy，不主动触发域名解析。显式直连 IP 排在服务 CIDR 之前。默认 `ipv6: false` 不变，IPv6 规则不会自动开启 IPv6。它们不是 Claude 所有网页/CDN 地址的完整集合；官方工具出口 `/21`、退役 IP 和共享云网段不加入。来源、核对日期与 YAML 导入所有权见[服务目录](SERVICE_CATALOG.md#claude-短链接与目的-ipv0310)。
+Claude 的目的 IP 规则使用 `IP-CIDR` / `IP-CIDR6`，依次生成 `FORCE_PROXY,no-resolve` 和 `REJECT,no-resolve`；没有对应 DNS policy，不主动触发域名解析。显式直连 IP 排在服务 CIDR 之前。默认 `ipv6: false` 不变，IPv6 规则不会自动开启 IPv6。它们不是 Claude 所有网页/CDN 地址的完整集合；官方工具出口 `/21`、退役 IP 和共享云网段不加入。来源、核对日期与 YAML 导入所有权见[服务目录](SERVICE_CATALOG.md)。
 
 ## 验收与排障
 

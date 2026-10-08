@@ -1,3 +1,14 @@
+# v0.3.10 Claude 域名与目的 IP 验证（2026-10-08）
+
+- Claude 默认开启的预设加入 `clau.de`、官方入站目的 IPv4 `160.79.104.0/23` 和 IPv6 `2607:6bc0::/48`；常规 / 默认直连模式均生成强制代理及相邻 REJECT。IP 规则带 `no-resolve`，不添加 DNS policy，默认禁用 IPv6 的设置不变。
+- 本地 lint、typecheck、9 个测试文件 247/247 与构建通过，核心行覆盖率 97.70%。新增回归覆盖域名 DNS、两种模式下的 CIDR、显式直连 IP 优先、YAML 导入识别与关闭后的规则移除、未接管 CIDR 保留。
+- Chrome 桌面浅色 / 移动深色完整浏览器回归 10/10 通过，验证 Claude 开关加入 / 移除新规则，及原有转换、复制、下载、导入、存储恢复。已查看两种分辨率的实际页面截图，显示 v0.3.10，无明显遮挡。首次受限运行不能监听回环端口；获准权限后成功重跑。
+- 功能源提交 `693d28155f653077c4610ecdffb1bb4f686bef83` 的 [GitHub CI](https://github.com/ForceMind/ToClash/actions/runs/37759666796) 与 [GitHub Pages](https://github.com/ForceMind/ToClash/actions/runs/37759666920) 均成功。
+- Cloudflare 列表回读 `Production/main/693d281`，部署 ID `ca69e24d-25f7-44db-bb94-4e2ce5154918`。主站、Cloudflare 默认域名与 GitHub Pages 实际打开后均显示 v0.3.10。
+- 官方出处和范围限制见[服务目录](SERVICE_CATALOG.md)。本批次没有测试真实 Mihomo、节点出口、`clau.de` 跳转或 Claude 业务访问，也未修改系统 DNS / 代理 / TUN。详情见[v0.3.10 正式发布记录](RELEASE_v0.3.10.md)。
+
+---
+
 # v0.3.9 Spaceship 验证（2026-10-08）
 
 - 默认关闭的 Spaceship 新项覆盖 `spaceship.com`（包含 `www.spaceship.com`）及官网使用的 `spaceship-cdn.com`；开启后同时生成 `FORCE_PROXY`、相邻 `REJECT` 和对应代理 DNS policy。
