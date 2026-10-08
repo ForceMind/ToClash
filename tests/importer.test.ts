@@ -59,6 +59,19 @@ rules:
 `
 
 describe('Mihomo YAML import', () => {
+  it('recognizes Claude CIDRs on import and removes owned matches when the preset is disabled', () => {
+    const input = profile.replace('  - DOMAIN-SUFFIX,openai.com,FORCE_PROXY', '  - DOMAIN-SUFFIX,clau.de,FORCE_PROXY\n  - DOMAIN-SUFFIX,clau.de,REJECT\n  - IP-CIDR,160.79.104.0/23,FORCE_PROXY,no-resolve\n  - IP-CIDR,160.79.104.0/23,REJECT,no-resolve\n  - IP-CIDR6,2607:6bc0::/48,FORCE_PROXY,no-resolve\n  - IP-CIDR6,2607:6bc0::/48,REJECT,no-resolve\n  - IP-CIDR,203.0.113.0/24,REJECT,no-resolve\n  - DOMAIN-SUFFIX,openai.com,FORCE_PROXY')
+    const imported = convertInput(input)
+    expect(imported.recoveredRouting?.presets.claude).toBe(true)
+    expect(imported.recoveredRouting?.proxyDomains).toEqual(['bovada.lv'])
+    const config = parse(serializeMihomo(imported.nodes, 'full', { mode: 'direct', presets: { claude: false } }, imported.imported))
+    expect(config.rules.some((rule: string) => rule.includes('clau.de') || rule.includes('160.79.104.0/23') || rule.includes('2607:6bc0::/48'))).toBe(false)
+    expect(config.rules).toContain('IP-CIDR,203.0.113.0/24,REJECT,no-resolve')
+    expect(config.dns['nameserver-policy']['+.clau.de']).toBeUndefined()
+    const ipOnly = convertInput(profile.replace('  - DOMAIN-SUFFIX,openai.com,FORCE_PROXY', '  - IP-CIDR,160.79.104.0/23,FORCE_PROXY,no-resolve\n  - DOMAIN-SUFFIX,openai.com,FORCE_PROXY'))
+    expect(ipOnly.recoveredRouting?.presets.claude).toBe(true)
+  })
+
   it('round-trips a complete default-direct profile with XHTTP, services and intranet DNS', () => {
     const node = parseLink(
       'vless://00000000-0000-4000-8000-000000000000@edge.example.test:443?encryption=none&security=tls&type=xhttp&path=%2F&mode=auto&x-padding-bytes=100-1000#XHTTP',

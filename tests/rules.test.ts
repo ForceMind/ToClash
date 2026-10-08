@@ -11,6 +11,30 @@ const legacyPresets = RULE_PRESETS.filter(({ defaultEnabled }) => defaultEnabled
 const noPresets = Object.fromEntries(RULE_PRESETS.map(({ id }) => [id, false])) as Record<PresetId, boolean>
 
 describe('service rule presets', () => {
+  it.each(['standard', 'direct'] as const)('includes Claude shortlinks and only published inbound CIDRs in %s mode', (mode) => {
+    const plan = buildRulePlan({ mode })
+    const rules = rulesOf(plan)
+    expect(rules).toContain('DOMAIN-SUFFIX,clau.de,FORCE_PROXY')
+    expect(policyOf(plan)['+.clau.de']).toEqual(proxyDns('FORCE_PROXY'))
+    for (const match of ['IP-CIDR,160.79.104.0/23', 'IP-CIDR6,2607:6bc0::/48']) {
+      const index = rules.indexOf(`${match},FORCE_PROXY,no-resolve`)
+      expect(index).toBeGreaterThanOrEqual(0)
+      expect(rules[index + 1]).toBe(`${match},REJECT,no-resolve`)
+      expect(rulesOf(buildRulePlan({ mode, presets: { claude: false } }))).not.toContain(`${match},FORCE_PROXY,no-resolve`)
+    }
+    expect(Object.keys(policyOf(plan)).some((key) => key.includes('160.79.104') || key.includes('2607:6bc0'))).toBe(false)
+    expect(rules.some((rule) => rule.includes('160.79.104.0/21') || rule.includes('34.162.46.92'))).toBe(false)
+    const disabled = buildRulePlan({ mode, presets: { claude: false } })
+    expect(rulesOf(disabled)).not.toContain('DOMAIN-SUFFIX,clau.de,FORCE_PROXY')
+    expect(policyOf(disabled)['+.clau.de']).toBeUndefined()
+  })
+
+  it('keeps an explicit direct IP before the Claude destination range', () => {
+    const rules = rulesOf(buildRulePlan({ mode: 'direct', directDomains: ['160.79.104.1', '2607:6bc0::1'] }))
+    expect(rules.indexOf('IP-CIDR,160.79.104.1/32,DIRECT,no-resolve')).toBeLessThan(rules.indexOf('IP-CIDR,160.79.104.0/23,FORCE_PROXY,no-resolve'))
+    expect(rules.indexOf('IP-CIDR6,2607:6bc0::1/128,DIRECT,no-resolve')).toBeLessThan(rules.indexOf('IP-CIDR6,2607:6bc0::/48,FORCE_PROXY,no-resolve'))
+  })
+
   it.each(Array.from({ length: 16 }, (_, mask) => mask))('supports every preset combination (mask %s)', (mask) => {
     const presets = Object.fromEntries(legacyPresets.map(({ id }, index) => [id, (mask & (1 << index)) !== 0]))
     const plan = buildRulePlan({ presets })

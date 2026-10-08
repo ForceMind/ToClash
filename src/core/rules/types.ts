@@ -26,6 +26,11 @@ export interface DomainRule {
   value: string
 }
 
+export interface IpRule {
+  type: 'IP-CIDR' | 'IP-CIDR6'
+  value: string
+}
+
 export interface RulePreset {
   id: PresetId
   category: PresetCategory
@@ -33,6 +38,8 @@ export interface RulePreset {
   nameEn: string
   defaultEnabled: boolean
   rules: readonly DomainRule[]
+  /** Published service destination ranges; never source/egress ranges. */
+  ipRules?: readonly IpRule[]
 }
 
 export interface RuleSection {

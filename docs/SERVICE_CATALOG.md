@@ -1,6 +1,6 @@
 # 海外服务预设目录
 
-v0.3.9 有 41 个独立服务开关、7 个分类。域名规则的唯一实现来源是 `src/core/rules/presets.ts`；本页说明选择依据、默认值和边界，不替代实际运行验证。
+v0.3.10 有 41 个独立服务开关、7 个分类。域名及服务目的 IP 规则的唯一实现来源是 `src/core/rules/presets.ts`；本页说明选择依据、默认值和边界，不替代实际运行验证。
 
 ## 默认值与分流
 
@@ -19,6 +19,14 @@ Codex / OpenAI、Claude / Anthropic、开发者服务 / GitHub、Google / YouTub
 | 游戏 | Steam、Epic Games、Roblox |
 
 Google Gemini 归入既有 Google / YouTube 开关，不另外创建重复开关。
+
+### Claude 短链接与目的 IP（v0.3.10）
+
+Claude 默认开启的预设新增 `clau.de` 后缀，包含其子域名；[Anthropic 官方插件目录](https://github.com/anthropics/claude-plugins-community)使用 `clau.de/plugin-directory-submission` 作为提交入口。域名规则和代理 DNS 随 Claude 开关同步启停。
+
+[Anthropic 官方 IP 说明](https://platform.claude.com/docs/en/api/ip-addresses)列出的 API / Console 入站目的地址为 `160.79.104.0/23`（IPv4）和 `2607:6bc0::/48`（IPv6），本次全部纳入 Claude 开关：生成 `FORCE_PROXY` 与相邻 `REJECT`，均带 `no-resolve`，不把 CIDR 写入 DNS policy。它们只补充已知目的 IP 的匹配，不主动解析域名，也不保证覆盖 Claude 网页、全部 CDN 或 AWS 托管端点。生成配置仍默认禁用 IPv6；保留 IPv6 规则供客户端启用 IPv6 后使用，不自动更改客户端网络设置。
+
+官方的 `160.79.104.0/21` 是服务器调用 MCP 等工具时的出口源地址，不作为访问 Claude 的目的范围加入。五个已退役的 `34.162.*` 地址，以及整个 Cloudflare / AWS / Google 等共享云 IP 段也不加入。依据核对日期：2026-10-08；不订阅或自动扩充 IP 列表。导入已有 YAML 后关闭 Claude，会移除这些由 ToClash 接管的规则，其他未接管 CIDR 保留。显式直连 IP 仍先于服务范围匹配。
 
 v0.3.9 新增 Spaceship 开关：`spaceship.com` 后缀包含 `www.spaceship.com` 及账号、控制台子域；`spaceship-cdn.com` 为[官网](https://www.spaceship.com/)使用的静态资源域名。默认关闭，开启后两者的规则与 DNS 同时走 `FORCE_PROXY`。
 
@@ -49,6 +57,6 @@ Meta / Meta AI / Quest 开关覆盖 `meta.com`、`meta.ai` 和 `oculus.com`。Fa
 
 ## 限制与维护
 
-这不是任一服务的完整运行域名、支付域名、遥测域名或地区域名清单，也不保证登录、客户端下载、媒体播放或企业 SSO 在所有地区成功。服务可能新增域名、迁移 CDN 或使用共享第三方身份验证；遇到缺失时，先以客户端日志和实际请求主机确认，再补充最小的服务专属规则与测试。特别是 Telegram 原生客户端还会连接数据中心 IP；[其协议文档](https://core.telegram.org/api/datacenter)对此有说明。本目录仅处理可识别的域名请求，不加入推测性的 IP 段，因此不能保证覆盖原生客户端全部流量。
+这不是任一服务的完整运行域名、支付域名、遥测域名或地区域名清单，也不保证登录、客户端下载、媒体播放或企业 SSO 在所有地区成功。服务可能新增域名、迁移 CDN 或使用共享第三方身份验证；遇到缺失时，先以客户端日志和实际请求主机确认，再补充最小的服务专属规则与测试。特别是 Telegram 原生客户端还会连接数据中心 IP；[其协议文档](https://core.telegram.org/api/datacenter)对此有说明。除上面的 Claude 官方入站范围外，本目录以可识别的域名请求为主，不加入推测性的 IP 段，因此不能保证覆盖原生客户端全部流量。
 
 更新目录时应保留服务独立开关、默认值、分类和 DNS 对应关系；新服务默认关闭。不得为了提高命中率加入共享云/CDN 顶级后缀，也不得把用户节点、公司域名、账号标识或其他私有输入写入目录或测试。

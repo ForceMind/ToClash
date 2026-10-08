@@ -51,6 +51,9 @@ test('real browser conversion, privacy, settings, download and keyboard workflow
   expect(parse(await output.inputValue()).rules).toContain(
     'DOMAIN-SUFFIX,openai.com,FORCE_PROXY',
   )
+  const claudeMatches = ['DOMAIN-SUFFIX,clau.de,FORCE_PROXY', 'IP-CIDR,160.79.104.0/23,FORCE_PROXY,no-resolve', 'IP-CIDR6,2607:6bc0::/48,FORCE_PROXY,no-resolve']
+  expect(parse(await output.inputValue()).rules).toEqual(expect.arrayContaining(claudeMatches))
+  expect(parse(await output.inputValue()).dns['nameserver-policy']['+.clau.de']).toEqual(['https://1.1.1.1/dns-query#FORCE_PROXY', 'https://8.8.8.8/dns-query#FORCE_PROXY'])
   expect(
     Object.keys(
       parse(await output.inputValue()).dns['nameserver-policy'],
@@ -65,6 +68,11 @@ test('real browser conversion, privacy, settings, download and keyboard workflow
   await presets.focus()
   await page.keyboard.press('Enter')
   await expect(page.getByLabel('Codex / OpenAI', { exact: true })).toBeVisible()
+  await page.getByLabel('Claude / Anthropic', { exact: true }).uncheck()
+  for (const match of claudeMatches) expect(parse(await output.inputValue()).rules).not.toContain(match)
+  expect(parse(await output.inputValue()).dns['nameserver-policy']['+.clau.de']).toBeUndefined()
+  await page.getByLabel('Claude / Anthropic', { exact: true }).check()
+  expect(parse(await output.inputValue()).rules).toEqual(expect.arrayContaining(claudeMatches))
   await page.getByLabel('Codex / OpenAI', { exact: true }).uncheck()
   expect(parse(await output.inputValue()).rules).not.toContain(
     'DOMAIN-SUFFIX,openai.com,FORCE_PROXY',

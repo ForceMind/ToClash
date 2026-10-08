@@ -47,6 +47,8 @@ YAML → importer → 原 `proxies:` / 未接管字段 ─→ mergeImportedMihom
 
 `buildRulePlan(routing)` 是纯函数，返回有序 `sections`、`dns`、脱敏 `warnings`；输入非法则抛结构化 `ConversionError`，不静默省略无效目标。节点转换仍独立逐行容错，不因为一个坏节点丢失其他成功结果。
 
+`RulePreset.rules` 保持域名匹配项；可选 `ipRules` 仅用于已核实的服务目的 CIDR，不能填写服务器出口源地址或推测性的共享云范围。规划器为 IP 生成带 `no-resolve` 的路由，不生成 DNS policy；YAML 导入器将这些匹配项纳入服务开关恢复及接管范围，关闭预设后不残留旧规则。v0.3.10 仅 Claude 使用该字段，来源见[服务目录](SERVICE_CATALOG.md)。
+
 `buildMihomoConfig(nodes, full, routing)` 验证必需字段、分配唯一安全名称，确认组引用存在且无环。完整配置至少需要一个有效节点；`full=false` 时只输出节点，不读取分流设置。
 
 `serializeMihomo` 使用 `yaml.Document` / AST 和稳定对象顺序，不对 YAML 成品做字符串替换，不插入不可信注释。分类注释来自静态元数据。导入配置时，`mergeImportedMihomoConfig` 保留原有节点、未知顶层 / DNS 字段、未接管的策略组和规则；将运行模式固定为 `rule`，并替换 ToClash 管理的本机、服务、自定义、策略组和最终 `MATCH` 范围，使表单修改能实际反映到导出结果。

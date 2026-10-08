@@ -3,10 +3,10 @@ import { parseRoutingTarget } from '../utils/domain'
 import { normalizeDnsServer } from '../utils/intranet'
 import { CGNAT_RULE, DIRECT_DNS, LOCAL_DNS, LOCAL_DOMAINS, LOCAL_IP_RULES, proxyDns, SYSTEM_DNS } from './defaults'
 import { DEFAULT_PRESETS, DIRECT_MODE_PRESET_ADDITIONS, RULE_PRESETS } from './presets'
-import type { CustomRouting, DomainRule, IntranetZone, RulePlan, RuleSection, RoutingWarning } from './types'
+import type { CustomRouting, DomainRule, IpRule, IntranetZone, RulePlan, RuleSection, RoutingWarning } from './types'
 
 type Target = NonNullable<ReturnType<typeof parseRoutingTarget>>
-type Match = DomainRule | { type: 'IP-CIDR' | 'IP-CIDR6'; value: string }
+type Match = DomainRule | IpRule
 type Policy = 'DIRECT' | 'PROXY' | 'FORCE_PROXY'
 interface PlannedMatch { match: Match; policy: Policy; dns: readonly string[] }
 
@@ -152,7 +152,7 @@ export function buildRulePlan(routing: CustomRouting = {}): RulePlan {
     // standard mode. Every other catalog service uses the fixed proxy group.
     const strict = directMode || (preset.id !== 'developer' && preset.id !== 'google')
     const destination = strict ? 'FORCE_PROXY' : 'PROXY'
-    const presetRules = directMode ? [...preset.rules, ...(DIRECT_MODE_PRESET_ADDITIONS[preset.id] ?? [])] : preset.rules
+    const presetRules: Match[] = [...preset.rules, ...(preset.ipRules ?? []), ...(directMode ? DIRECT_MODE_PRESET_ADDITIONS[preset.id] ?? [] : [])]
     addSection(preset.id, `${preset.nameZh}：${strict ? '必须代理；失败不降级直连' : '使用 PROXY 组（可手动选 DIRECT）'}`, presetRules.filter((match) => effectiveProxy(match)), destination, proxyDns(destination))
   }
   for (const entry of planned) {

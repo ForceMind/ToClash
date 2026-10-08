@@ -27,10 +27,16 @@ export const RULE_PRESETS: readonly RulePreset[] = [
   {
     id: 'claude', category: 'ai', nameZh: 'Claude / Anthropic', nameEn: 'Claude / Anthropic', defaultEnabled: true,
     rules: [
-      ...suffixes('anthropic.com', 'claude.ai', 'claude.com', 'anthropic-static.com'),
+      ...suffixes('anthropic.com', 'claude.ai', 'claude.com', 'clau.de', 'anthropic-static.com'),
       { type: 'DOMAIN', value: 'bridge.claudeusercontent.com' },
       { type: 'DOMAIN', value: 'storage.googleapis.com' },
       { type: 'DOMAIN', value: 'raw.githubusercontent.com' },
+    ],
+    // Anthropic-published API/Console inbound destinations, checked 2026-10-08.
+    // The broader outbound /21 is a source range for tools, not our destination.
+    ipRules: [
+      { type: 'IP-CIDR', value: '160.79.104.0/23' },
+      { type: 'IP-CIDR6', value: '2607:6bc0::/48' },
     ],
   },
   {

@@ -138,7 +138,7 @@ function allCatalogMatchKeys(): Set<string> {
   const keys = new Set<string>()
   for (const preset of RULE_PRESETS) {
     const additions = DIRECT_MODE_PRESET_ADDITIONS[preset.id] ?? []
-    for (const match of [...preset.rules, ...additions]) {
+    for (const match of [...preset.rules, ...(preset.ipRules ?? []), ...additions]) {
       keys.add(`${match.type},${match.value}`)
     }
   }
@@ -215,6 +215,7 @@ function recoverRouting(
     RULE_PRESETS.map((preset) => {
       const matches = [
         ...preset.rules,
+        ...(preset.ipRules ?? []),
         ...(DIRECT_MODE_PRESET_ADDITIONS[preset.id] ?? []),
       ]
       const enabled = matches.some((match) =>

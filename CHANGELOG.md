@@ -2,6 +2,12 @@
 
 这里记录 ToClash 的重要变更。
 
+## 0.3.10 — 2026-10-08
+
+- Claude 默认开启的预设新增 `clau.de`，同步生成强制代理、相邻 REJECT 和代理 DNS policy。
+- 加入 Anthropic 官方公布的 API / Console 入站目的地址 `160.79.104.0/23`、`2607:6bc0::/48`；IP 规则带 `no-resolve`，不生成 DNS policy。不加入工具调用出口 `/21`、已退役地址或共享云 / CDN 整段 IP。
+- YAML 导入能识别这些 Claude 匹配项；关闭 Claude 后移除 ToClash 接管的域名和 IP 规则，保留未接管的其他 CIDR。服务数量仍为 41 项。
+
 ## 0.3.9 — 2026-10-08
 
 - 新增 Spaceship 独立服务开关，覆盖 `spaceship.com`（包括 `www.spaceship.com`）及官网静态资源域名 `spaceship-cdn.com`；开启后生成强制代理、相邻 REJECT 与对应 DNS policy。

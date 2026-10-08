@@ -139,11 +139,13 @@ v0.3.3 增加分类、搜索和独立开关，完整目录、来源和共享域�
 预设不是远程规则订阅，不会自动更新；域名清单集中在 `src/core/rules/presets.ts`，修改须附来源和测试。
 
 - OpenAI：API、ChatGPT、静态资源、认证相关自有域名，以及精确匹配的 `workos.imgix.net`、`challenges.cloudflare.com`。
-- Claude：Anthropic/Claude 自有服务域名及精确的浏览器 WebSocket bridge、旧安装包存储和 release notes 主机。
+- Claude：Anthropic/Claude 自有服务域名（含 `clau.de`）及精确的浏览器 WebSocket bridge、旧安装包存储和 release notes 主机；另补充官方 API / Console 入站目的 IP `160.79.104.0/23`、`2607:6bc0::/48`，随开关启停。
 - 开发者：GitHub 网站、资源和 Pages 域名。
 - Google / YouTube：主站、API、静态资源与常见视频资源域名。
 
 共享主机使用精确匹配，避免代理整个 `cloudflare.com`、`googleusercontent.com` 等大型服务空间。精确规则仍会影响同主机上的其他用途，例如共享验证码、存储桶；可以关闭相关预设或显式直连。该清单并非所有支付、遥测、SSO 或地区域名的全集，不能承诺完成所有账号验证。无进程级规则，也不会修改 Managed Provider 或 AgentBox 的环境变量。
+
+Claude 的目的 IP 规则使用 `IP-CIDR` / `IP-CIDR6`，依次生成 `FORCE_PROXY,no-resolve` 和 `REJECT,no-resolve`；没有对应 DNS policy，不主动触发域名解析。显式直连 IP 排在服务 CIDR 之前。默认 `ipv6: false` 不变，IPv6 规则不会自动开启 IPv6。它们不是 Claude 所有网页/CDN 地址的完整集合；官方工具出口 `/21`、退役 IP 和共享云网段不加入。来源、核对日期与 YAML 导入所有权见[服务目录](SERVICE_CATALOG.md#claude-短链接与目的-ipv0310)。
 
 ## 验收与排障
 
@@ -164,6 +166,7 @@ v0.3.3 增加分类、搜索和独立开关，完整目录、来源和共享域�
 - [Mihomo 通用配置](https://wiki.metacubex.one/config/general/)：GeoSite / GeoIP 数据要求。
 - [OpenAI 网络建议](https://help.openai.com/en/articles/9247338-network-recommendations-for-chatgpt-errors-on-web-and-apps)：服务及登录相关域名。
 - [Claude Code 网络配置](https://code.claude.com/docs/en/network-config)：API、登录、安装更新及浏览器集成。
+- [Anthropic IP 说明](https://platform.claude.com/docs/en/api/ip-addresses)：区分 API / Console 入站目的范围、工具调用出口与退役 IP。
 - [RFC 6598](https://www.rfc-editor.org/rfc/rfc6598.html)：共享地址空间不等同普通私网。
 
 维护优先级：固定版本核心的真实行为 > 当前官方文档 > 此处说明 > 非规范 URI 或用户示例。发生偏差应报告并补回归测试，不能只增加看起来合理的字段。
