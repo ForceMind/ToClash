@@ -44,7 +44,7 @@ describe('service rule presets', () => {
 
   it('derives defaults and category labels from the catalogue', () => {
     expect(Object.fromEntries(RULE_PRESETS.map(({ id, defaultEnabled }) => [id, defaultEnabled]))).toEqual(DEFAULT_PRESETS)
-    expect(RULE_PRESETS).toHaveLength(40)
+    expect(RULE_PRESETS).toHaveLength(41)
     expect(new Set(RULE_PRESETS.map(({ id }) => id)).size).toBe(RULE_PRESETS.length)
     expect(new Set(PRESET_CATEGORIES.map(({ id }) => id))).toEqual(new Set(['ai', 'social', 'media', 'work', 'developer', 'commerce', 'gaming']))
     expect(RULE_PRESETS.find(({ id }) => id === 'threads')?.rules).toContainEqual({ type: 'DOMAIN-SUFFIX', value: 'threads.com' })

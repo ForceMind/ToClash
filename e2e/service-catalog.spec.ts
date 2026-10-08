@@ -45,6 +45,20 @@ test('choose overseas services and preserve choices on reload', async ({
   await page.getByLabel('PayPal', { exact: true }).check()
   config = parse(await output.inputValue())
   expect(config.rules).toContain('DOMAIN-SUFFIX,paypalobjects.com,FORCE_PROXY')
+  await search.fill('Spaceship')
+  const spaceship = page.getByLabel('Spaceship', { exact: true })
+  await expect(spaceship).not.toBeChecked()
+  await spaceship.check()
+  config = parse(await output.inputValue())
+  for (const domain of ['spaceship.com', 'spaceship-cdn.com']) {
+    const index = config.rules.indexOf(`DOMAIN-SUFFIX,${domain},FORCE_PROXY`)
+    expect(index).toBeGreaterThanOrEqual(0)
+    expect(config.rules[index + 1]).toBe(`DOMAIN-SUFFIX,${domain},REJECT`)
+    expect(config.dns['nameserver-policy'][`+.${domain}`]).toEqual([
+      'https://1.1.1.1/dns-query#FORCE_PROXY',
+      'https://8.8.8.8/dns-query#FORCE_PROXY',
+    ])
+  }
   await search.fill('Twitter')
   await page.getByLabel('X / Twitter', { exact: true }).check()
   config = parse(await output.inputValue())
@@ -75,6 +89,7 @@ test('choose overseas services and preserve choices on reload', async ({
   await expect(page.getByLabel('Meta / Meta AI / Quest', { exact: true })).toBeChecked()
   await expect(page.getByLabel('AWS 控制台', { exact: true })).toBeChecked()
   await expect(page.getByLabel('PayPal', { exact: true })).toBeChecked()
+  await expect(page.getByLabel('Spaceship', { exact: true })).toBeChecked()
   await page.getByLabel('TikTok', { exact: true }).uncheck()
   await page.getByRole('button', { name: '示例', exact: true }).click()
   await page.getByRole('button', { name: '转换', exact: true }).click()

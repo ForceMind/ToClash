@@ -2,6 +2,11 @@
 
 这里记录 ToClash 的重要变更。
 
+## 0.3.9 — 2026-10-08
+
+- 新增 Spaceship 独立服务开关，覆盖 `spaceship.com`（包括 `www.spaceship.com`）及官网静态资源域名 `spaceship-cdn.com`；开启后生成强制代理、相邻 REJECT 与对应 DNS policy。
+- 新项默认关闭，旧保存设置补齐关闭值；服务目录更新为 41 项。
+
 ## 0.3.8 — 2026-09-28
 
 - 增加 11 个独立服务开关：Meta / Meta AI / Quest、Amazon 购物、AWS 控制台、Cloudflare、Figma、Adobe、PayPal、Stripe、Pinterest、Snapchat、Roblox。服务目录新增“购物与支付”分类，总计 40 项。

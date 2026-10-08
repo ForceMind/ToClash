@@ -2,7 +2,7 @@ export type PresetId =
   | 'openai' | 'claude' | 'developer' | 'google'
   | 'x' | 'tiktok' | 'meta' | 'facebook' | 'instagram' | 'threads' | 'reddit' | 'telegram' | 'whatsapp' | 'discord' | 'linkedin' | 'pinterest' | 'snapchat'
   | 'netflix' | 'disney' | 'primevideo' | 'spotify' | 'twitch'
-  | 'perplexity' | 'grok' | 'microsoft' | 'apple' | 'notion' | 'slack' | 'zoom' | 'dropbox' | 'figma' | 'adobe' | 'amazon' | 'aws' | 'cloudflare' | 'paypal' | 'stripe' | 'steam' | 'epic' | 'roblox'
+  | 'perplexity' | 'grok' | 'microsoft' | 'apple' | 'notion' | 'slack' | 'zoom' | 'dropbox' | 'figma' | 'adobe' | 'amazon' | 'aws' | 'cloudflare' | 'spaceship' | 'paypal' | 'stripe' | 'steam' | 'epic' | 'roblox'
 
 export type PresetCategory = 'ai' | 'social' | 'media' | 'work' | 'developer' | 'commerce' | 'gaming'
 

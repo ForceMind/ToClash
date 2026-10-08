@@ -1,10 +1,10 @@
 # 海外服务预设目录
 
-v0.3.8 有 40 个独立服务开关、7 个分类。域名规则的唯一实现来源是 `src/core/rules/presets.ts`；本页说明选择依据、默认值和边界，不替代实际运行验证。
+v0.3.9 有 41 个独立服务开关、7 个分类。域名规则的唯一实现来源是 `src/core/rules/presets.ts`；本页说明选择依据、默认值和边界，不替代实际运行验证。
 
 ## 默认值与分流
 
-Codex / OpenAI、Claude / Anthropic、开发者服务 / GitHub、Google / YouTube 保持默认开启，兼容既有保存设置。其余 36 个服务默认关闭；旧设置缺少新字段时也保持关闭。
+Codex / OpenAI、Claude / Anthropic、开发者服务 / GitHub、Google / YouTube 保持默认开启，兼容既有保存设置。其余 37 个服务默认关闭；旧设置缺少新字段时也保持关闭。
 
 常规模式中，既有 OpenAI 与 Claude 使用 `FORCE_PROXY`；既有 GitHub 与 Google / YouTube 继续使用可手动选择出口的 `PROXY`。所有新服务在启用后使用 `FORCE_PROXY`，避免在“指定服务使用 VPN IP”的场景中意外落到 `DIRECT`。默认直连模式里，所有已选服务都使用 `FORCE_PROXY`，其余流量由 `MATCH,DIRECT` 处理。
 
@@ -14,11 +14,13 @@ Codex / OpenAI、Claude / Anthropic、开发者服务 / GitHub、Google / YouTub
 | 社交与通讯 | X / Twitter、TikTok、Meta / Meta AI / Quest、Facebook、Instagram、Threads、Reddit、Telegram、WhatsApp、Discord、LinkedIn、Pinterest、Snapchat |
 | 媒体与流媒体 | Google / YouTube、Netflix、Disney+、Prime Video、Spotify、Twitch |
 | 工作与协作 | Microsoft、Apple / iCloud、Notion、Slack、Zoom、Dropbox、Figma、Adobe |
-| 开发者服务 | GitHub、AWS 控制台、Cloudflare |
+| 开发者服务 | GitHub、AWS 控制台、Cloudflare、Spaceship |
 | 购物与支付 | Amazon 购物、PayPal、Stripe |
 | 游戏 | Steam、Epic Games、Roblox |
 
 Google Gemini 归入既有 Google / YouTube 开关，不另外创建重复开关。
+
+v0.3.9 新增 Spaceship 开关：`spaceship.com` 后缀包含 `www.spaceship.com` 及账号、控制台子域；`spaceship-cdn.com` 为[官网](https://www.spaceship.com/)使用的静态资源域名。默认关闭，开启后两者的规则与 DNS 同时走 `FORCE_PROXY`。
 
 Meta / Meta AI / Quest 开关覆盖 `meta.com`、`meta.ai` 和 `oculus.com`。Facebook、Instagram、Threads、WhatsApp 保持独立开关，避免只想代理 Meta 官网时扩大到全部社交应用。Meta 的[产品页面](https://www.meta.com/technologies/)列出这些独立应用，[Meta AI 官方页面](https://ai.meta.com/meta-ai)确认网页入口为 `meta.ai`，[Quest 开发文档](https://developers.meta.com/horizon/documentation/unity/ps-destinations-implementation/)仍使用 `oculus.com` 链接。
 

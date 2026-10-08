@@ -71,6 +71,7 @@ export const RULE_PRESETS: readonly RulePreset[] = [
   { id: 'adobe', category: 'work', nameZh: 'Adobe', nameEn: 'Adobe', defaultEnabled: false, rules: suffixes('adobe.com', 'adobe.io', 'adobelogin.com', 'adobe-identity.com', 'adobejanus.com', 'adobecc.com', 'adobeccstatic.com') },
   { id: 'aws', category: 'developer', nameZh: 'AWS 控制台', nameEn: 'AWS Console', defaultEnabled: false, rules: suffixes('aws.amazon.com', 'signin.aws', 'awsapps.com') },
   { id: 'cloudflare', category: 'developer', nameZh: 'Cloudflare', nameEn: 'Cloudflare', defaultEnabled: false, rules: suffixes('cloudflare.com') },
+  { id: 'spaceship', category: 'developer', nameZh: 'Spaceship', nameEn: 'Spaceship', defaultEnabled: false, rules: suffixes('spaceship.com', 'spaceship-cdn.com') },
   { id: 'amazon', category: 'commerce', nameZh: 'Amazon 购物', nameEn: 'Amazon Shopping', defaultEnabled: false, rules: suffixes('amazon.com') },
   { id: 'paypal', category: 'commerce', nameZh: 'PayPal', nameEn: 'PayPal', defaultEnabled: false, rules: suffixes('paypal.com', 'paypalobjects.com') },
   { id: 'stripe', category: 'commerce', nameZh: 'Stripe', nameEn: 'Stripe', defaultEnabled: false, rules: suffixes('stripe.com') },

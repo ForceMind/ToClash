@@ -23,7 +23,7 @@ XHTTP 支持 URI 中的 `x_padding_bytes` / `x-padding-bytes`，以及 `extra` J
 
 用户直连优先于用户代理和服务预设，但不能覆盖更优先的本机 / 局域网与内网保护。用户“始终代理”和 AI 预设使用 `FORCE_PROXY`；该组没有 `DIRECT`，对应规则后附同条件 `REJECT`，避免不支持 UDP 时落入后续直连规则。普通 `PROXY` 仍允许手动选择 `DIRECT`。
 
-当前版本有 40 项、7 类服务预设。既有 Codex / OpenAI、Claude / Anthropic、开发者服务 / GitHub、Google / YouTube 默认开启；其余 36 项默认关闭。常规模式保留 Google / YouTube 和 GitHub 的 `PROXY` 行为，其余选中服务使用 `FORCE_PROXY`。设置与 DNS 由同一规则计划生成，详见[服务目录](SERVICE_CATALOG.md)。预设按域名分流，不能保证 Telegram、Roblox 等客户端的 IP 直连或音视频流量。
+当前版本有 41 项、7 类服务预设。既有 Codex / OpenAI、Claude / Anthropic、开发者服务 / GitHub、Google / YouTube 默认开启；其余 37 项默认关闭。常规模式保留 Google / YouTube 和 GitHub 的 `PROXY` 行为，其余选中服务使用 `FORCE_PROXY`。设置与 DNS 由同一规则计划生成，详见[服务目录](SERVICE_CATALOG.md)。预设按域名分流，不能保证 Telegram、Roblox 等客户端的 IP 直连或音视频流量。
 
 本版的交付范围和验证边界见 [v0.3.3 发布记录](RELEASE_v0.3.3.md)。
 

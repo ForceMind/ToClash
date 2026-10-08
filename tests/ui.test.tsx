@@ -404,7 +404,7 @@ rules:
     expect(screen.getByText('已检测 2 条，成功 1 条，失败 1 条。')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: '下一步' }))
 
-    expect(screen.getByText(/全部 40 项服务/)).toBeTruthy()
+    expect(screen.getByText(/全部 41 项服务/)).toBeTruthy()
     fireEvent.click(within(dialog).getByLabelText('开发者服务 / GitHub'))
     fireEvent.click(screen.getByRole('button', { name: '下一步' }))
 

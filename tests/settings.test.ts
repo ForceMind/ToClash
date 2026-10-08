@@ -107,7 +107,7 @@ describe('routing settings storage', () => {
     expect(loaded.settings.presets.x).toBe(false)
     expect(loaded.settings.presets.tiktok).toBe(false)
     expect(loaded.settings.presets.meta).toBe(false)
-    for (const id of ['amazon', 'aws', 'cloudflare', 'figma', 'adobe', 'paypal', 'stripe', 'pinterest', 'snapchat', 'roblox'] as const) {
+    for (const id of ['amazon', 'aws', 'cloudflare', 'spaceship', 'figma', 'adobe', 'paypal', 'stripe', 'pinterest', 'snapchat', 'roblox'] as const) {
       expect(loaded.settings.presets[id]).toBe(false)
     }
     expect(window.localStorage.getItem(SETTINGS_KEY)).toBe(raw)

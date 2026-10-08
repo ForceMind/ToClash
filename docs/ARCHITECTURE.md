@@ -43,7 +43,7 @@ YAML → importer → 原 `proxies:` / 未接管字段 ─→ mergeImportedMihom
 
 ### 核心契约
 
-`CustomRouting` 支持 `mode`、`directDomains`、`proxyDomains`、40 项服务 `presets`、`bypassCgnat`（默认关闭），以及由后缀和 IP-literal UDP DNS 数组组成的 `intranet`。四项原有服务默认开启，其余 36 项默认关闭；核心 API 可为不同内网后缀指定不同 DNS，更具体后缀优先，同后缀不同 DNS 定义报错。
+`CustomRouting` 支持 `mode`、`directDomains`、`proxyDomains`、41 项服务 `presets`、`bypassCgnat`（默认关闭），以及由后缀和 IP-literal UDP DNS 数组组成的 `intranet`。四项原有服务默认开启，其余 37 项默认关闭；核心 API 可为不同内网后缀指定不同 DNS，更具体后缀优先，同后缀不同 DNS 定义报错。
 
 `buildRulePlan(routing)` 是纯函数，返回有序 `sections`、`dns`、脱敏 `warnings`；输入非法则抛结构化 `ConversionError`，不静默省略无效目标。节点转换仍独立逐行容错，不因为一个坏节点丢失其他成功结果。
 
@@ -65,7 +65,7 @@ Mihomo DNS 并非全局最长后缀查找：连续普通域名可以构成最长
 
 ### UI 状态与失败路径
 
-- 初始：简体中文、跟随系统初始主题、完整配置、40 项预设中原四项开启、其余 36 项关闭，内网及 CGNAT 关闭；没有 `seen` 标记时自动打开新手模式。
+- 初始：简体中文、跟随系统初始主题、完整配置、41 项预设中原四项开启、其余 37 项关闭，内网及 CGNAT 关闭；没有 `seen` 标记时自动打开新手模式。
 - 新手模式：六步草稿覆盖模式、节点、常用服务、网站规则和内网，关闭不应用，最终确认后写回正式页面并调用同一转换函数；页头按钮可手动重开。
 - 编辑节点：立即清除旧结果，需要再次转换，避免复制过期结果。
 - 编辑 YAML：直接粘贴或文件导入后立即解析；成功时仅恢复可安全映射的表单项。原始 YAML 和节点凭据保持在组件内存，清空节点后释放。
