@@ -37,9 +37,9 @@ describe('Mihomo output', () => {
     expect(config.rules).toEqual(expect.arrayContaining(['DOMAIN-SUFFIX,google.com,FORCE_PROXY', 'MATCH,DIRECT']))
     expect(config.rules).not.toEqual(expect.arrayContaining(['GEOSITE,CN,DIRECT', 'GEOIP,CN,DIRECT', 'MATCH,PROXY']))
     expect(config.dns).toMatchObject({
-      nameserver: ['https://1.0.0.1/dns-query#DIRECT', 'https://8.8.8.8/dns-query#DIRECT'],
+      nameserver: ['system'],
       'proxy-server-nameserver': ['system'],
-      'direct-nameserver': ['https://1.0.0.1/dns-query#DIRECT', 'https://8.8.8.8/dns-query#DIRECT'],
+      'direct-nameserver': ['system'],
       'direct-nameserver-follow-policy': true,
     })
   })

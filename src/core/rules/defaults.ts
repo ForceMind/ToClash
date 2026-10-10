@@ -1,9 +1,6 @@
 import type { DomainRule } from './types'
 
 export const DIRECT_DNS = ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'] as const
-// Public lookups in default-direct mode must not inherit a polluted system DNS.
-// Pin both encrypted resolvers to DIRECT; no proxy node or DNS bootstrap is needed.
-export const DIRECT_MODE_DNS = ['https://1.0.0.1/dns-query#DIRECT', 'https://8.8.8.8/dns-query#DIRECT'] as const
 export const SYSTEM_DNS = ['system'] as const
 export const LOCAL_DNS = ['rcode://refused'] as const
 export const LOCAL_DOMAINS: readonly DomainRule[] = [

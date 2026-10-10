@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ConversionError } from '../src/core/model/proxy'
-import { DIRECT_DNS, DIRECT_MODE_DNS, LOCAL_DNS, LOCAL_IP_RULES, proxyDns, SYSTEM_DNS } from '../src/core/rules/defaults'
+import { DIRECT_DNS, LOCAL_DNS, LOCAL_IP_RULES, proxyDns, SYSTEM_DNS } from '../src/core/rules/defaults'
 import { buildRulePlan } from '../src/core/rules/plan'
 import { DEFAULT_PRESETS, PRESET_CATEGORIES, RULE_PRESETS } from '../src/core/rules/presets'
 import type { CustomRouting, PresetId, RulePlan } from '../src/core/rules/types'
@@ -210,7 +210,7 @@ describe('routing and DNS precedence', () => {
 })
 
 describe('default-direct routing', () => {
-  it('uses direct public DoH while isolating intranet, node bootstrap and proxy services', () => {
+  it('uses system public DNS while isolating intranet, node bootstrap and proxy services', () => {
     const plan = buildRulePlan({
       mode: 'direct',
       intranet: [{ suffix: 'corp.example', nameservers: ['10.0.0.53'] }],
@@ -236,22 +236,20 @@ describe('default-direct routing', () => {
     expect(policy['+.local']).toEqual(SYSTEM_DNS)
     expect(policy['+.corp.example']).toEqual(['udp://10.0.0.53:53'])
     expect(plan.dns).toMatchObject({
-      nameserver: DIRECT_MODE_DNS,
+      nameserver: SYSTEM_DNS,
       'proxy-server-nameserver': SYSTEM_DNS,
-      'direct-nameserver': DIRECT_MODE_DNS,
+      'direct-nameserver': SYSTEM_DNS,
       'direct-nameserver-follow-policy': true,
     })
   })
 
-  it('keeps public custom-direct DNS encrypted and preserves company DNS precedence', () => {
+  it('keeps system DNS for custom-direct public domains and preserves company DNS precedence', () => {
     const plan = buildRulePlan({
       mode: 'direct',
       directDomains: ['workers.dev', 'api.corp.example'],
       intranet: [{ suffix: 'corp.example', nameservers: ['192.0.2.53'] }],
     })
-    expect(policyOf(plan)['+.workers.dev']).toEqual([
-      'https://1.0.0.1/dns-query#DIRECT', 'https://8.8.8.8/dns-query#DIRECT',
-    ])
+    expect(policyOf(plan)['+.workers.dev']).toEqual(SYSTEM_DNS)
     expect(policyOf(plan)['+.corp.example']).toEqual(['udp://192.0.2.53:53'])
     expect(policyOf(plan)['+.api.corp.example']).toBeUndefined()
     expect(policyOf(plan)['+.openai.com']).toEqual(proxyDns('FORCE_PROXY'))

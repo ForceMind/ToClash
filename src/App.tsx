@@ -483,8 +483,8 @@ export default function App() {
                   <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
                     {mode === 'direct'
                       ? zh
-                        ? '适合当前网络已能访问国际互联网。勾选下方需要代理的服务；其他流量直连，公网域名使用直连加密 DNS，内网保留独立 DNS 策略。代理出口在客户端的 FORCE_PROXY 中手动选择，不自动切换节点。'
-                        : 'For networks with direct Internet access. Select services below to proxy; other traffic connects directly with encrypted public DNS and separate intranet DNS policies. Choose the exit manually in FORCE_PROXY; nodes do not switch automatically.'
+                        ? '适合当前网络已能访问国际互联网。勾选下方需要代理的服务；其他流量直连，默认使用系统 DNS。代理出口在客户端的 FORCE_PROXY 中手动选择，不自动切换节点。'
+                        : 'For networks with direct Internet access. Select services below to proxy; other traffic connects directly using system DNS. Choose the exit manually in FORCE_PROXY; nodes do not switch automatically.'
                       : zh
                         ? '中国大陆直连，其他流量交给 PROXY；保留原有分流和公共 DNS 设置。'
                         : 'Mainland China connects directly; other traffic uses PROXY with the existing public DNS settings.'}

@@ -59,13 +59,13 @@ rules:
 `
 
 describe('Mihomo YAML import', () => {
-  it('upgrades legacy system public DNS on re-export without changing nodes or intranet DNS', () => {
+  it('preserves system public DNS on re-export without changing nodes or intranet DNS', () => {
     const input = profile.replace('  fallback-filter:', '  nameserver: [system]\n  direct-nameserver: [system]\n  proxy-server-nameserver: [system]\n  fallback-filter:')
     const result = convertInput(input)
     const config = parse(serializeMihomo(result.nodes, 'full', {
       mode: 'direct', intranet: [{ suffix: 'corp.example', nameservers: ['192.0.2.53'] }],
     }, result.imported))
-    const expected = ['https://1.0.0.1/dns-query#DIRECT', 'https://8.8.8.8/dns-query#DIRECT']
+    const expected = ['system']
     expect(config.dns.nameserver).toEqual(expected)
     expect(config.dns['direct-nameserver']).toEqual(expected)
     expect(config.dns['proxy-server-nameserver']).toEqual(['system'])
