@@ -2,6 +2,11 @@
 
 这里记录 ToClash 的重要变更。
 
+## 0.3.11 — 2026-10-10
+
+- 默认直连模式的公网默认解析和显式直连域名改用 Cloudflare `1.0.0.1`、Google `8.8.8.8` 的 DoH，DNS 连接显式采用 `DIRECT`，避免继承系统 DNS 的错误公网回答。
+- 保留 `MATCH,DIRECT`、本地 / 内网 DNS、节点 bootstrap 和指定服务的代理 DNS；同步页面说明、YAML 注释、导出及导入回归。
+
 ## 0.3.10 — 2026-10-08
 
 - Claude 默认开启的预设新增 `clau.de`，同步生成强制代理、相邻 REJECT 和代理 DNS policy。

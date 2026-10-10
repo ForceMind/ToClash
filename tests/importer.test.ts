@@ -59,6 +59,23 @@ rules:
 `
 
 describe('Mihomo YAML import', () => {
+  it('upgrades legacy system public DNS on re-export without changing nodes or intranet DNS', () => {
+    const input = profile.replace('  fallback-filter:', '  nameserver: [system]\n  direct-nameserver: [system]\n  proxy-server-nameserver: [system]\n  fallback-filter:')
+    const result = convertInput(input)
+    const config = parse(serializeMihomo(result.nodes, 'full', {
+      mode: 'direct', intranet: [{ suffix: 'corp.example', nameservers: ['192.0.2.53'] }],
+    }, result.imported))
+    const expected = ['https://1.0.0.1/dns-query#DIRECT', 'https://8.8.8.8/dns-query#DIRECT']
+    expect(config.dns.nameserver).toEqual(expected)
+    expect(config.dns['direct-nameserver']).toEqual(expected)
+    expect(config.dns['proxy-server-nameserver']).toEqual(['system'])
+    expect(config.dns['nameserver-policy']['+.corp.example']).toEqual(['udp://192.0.2.53:53'])
+    expect(config.dns['proxy-server-nameserver-policy']['+.corp.example']).toEqual(['udp://192.0.2.53:53'])
+    expect(config.dns['nameserver-policy']['+.preserved.example']).toEqual(['system'])
+    expect(config.proxies).toEqual(parse(input).proxies)
+    expect(config.rules.at(-1)).toBe('MATCH,DIRECT')
+  })
+
   it('recognizes Claude CIDRs on import and removes owned matches when the preset is disabled', () => {
     const input = profile.replace('  - DOMAIN-SUFFIX,openai.com,FORCE_PROXY', '  - DOMAIN-SUFFIX,clau.de,FORCE_PROXY\n  - DOMAIN-SUFFIX,clau.de,REJECT\n  - IP-CIDR,160.79.104.0/23,FORCE_PROXY,no-resolve\n  - IP-CIDR,160.79.104.0/23,REJECT,no-resolve\n  - IP-CIDR6,2607:6bc0::/48,FORCE_PROXY,no-resolve\n  - IP-CIDR6,2607:6bc0::/48,REJECT,no-resolve\n  - IP-CIDR,203.0.113.0/24,REJECT,no-resolve\n  - DOMAIN-SUFFIX,openai.com,FORCE_PROXY')
     const imported = convertInput(input)

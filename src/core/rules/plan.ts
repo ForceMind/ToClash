@@ -1,7 +1,7 @@
 import { ConversionError } from '../model/proxy'
 import { parseRoutingTarget } from '../utils/domain'
 import { normalizeDnsServer } from '../utils/intranet'
-import { CGNAT_RULE, DIRECT_DNS, LOCAL_DNS, LOCAL_DOMAINS, LOCAL_IP_RULES, proxyDns, SYSTEM_DNS } from './defaults'
+import { CGNAT_RULE, DIRECT_DNS, DIRECT_MODE_DNS, LOCAL_DNS, LOCAL_DOMAINS, LOCAL_IP_RULES, proxyDns, SYSTEM_DNS } from './defaults'
 import { DEFAULT_PRESETS, DIRECT_MODE_PRESET_ADDITIONS, RULE_PRESETS } from './presets'
 import type { CustomRouting, DomainRule, IpRule, IntranetZone, RulePlan, RuleSection, RoutingWarning } from './types'
 
@@ -81,7 +81,7 @@ function normalizeZones(values: IntranetZone[]): IntranetZone[] {
 /** Pure rule/DNS planning: traffic order and DNS suffix precedence share one model. */
 export function buildRulePlan(routing: CustomRouting = {}): RulePlan {
   const directMode = routing.mode === 'direct'
-  const directResolvers = directMode ? SYSTEM_DNS : DIRECT_DNS
+  const directResolvers = directMode ? DIRECT_MODE_DNS : DIRECT_DNS
   const direct = parseTargets(routing.directDomains ?? [])
   const proxy = parseTargets(routing.proxyDomains ?? [])
   const zones = normalizeZones(routing.intranet ?? [])
@@ -189,7 +189,8 @@ export function buildRulePlan(routing: CustomRouting = {}): RulePlan {
       'use-system-hosts': true,
       'default-nameserver': ['223.5.5.5', '119.29.29.29'],
       nameserver: [...directResolvers],
-      'proxy-server-nameserver': [...directResolvers],
+      // Node bootstrap is independent of public business DNS and proxy routes.
+      'proxy-server-nameserver': [...(directMode ? SYSTEM_DNS : DIRECT_DNS)],
       'proxy-server-nameserver-policy': bootstrapPolicy,
       'direct-nameserver': [...directResolvers],
       // Direct mode must follow explicit intranet policies; otherwise a custom

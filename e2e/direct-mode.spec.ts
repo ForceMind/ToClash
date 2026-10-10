@@ -25,7 +25,9 @@ test('direct mode conversion and saved choices', async ({ page }, testInfo) => {
   expect(config['proxy-groups']).toHaveLength(1)
   expect(config['proxy-groups'][0].proxies).not.toContain('AUTO')
   expect(config['proxy-groups'][0].proxies).not.toContain('DIRECT')
-  expect(config.dns.nameserver).toEqual(['system'])
+  expect(config.dns.nameserver).toEqual(['https://1.0.0.1/dns-query#DIRECT', 'https://8.8.8.8/dns-query#DIRECT'])
+  expect(config.dns['direct-nameserver']).toEqual(config.dns.nameserver)
+  expect(config.dns['proxy-server-nameserver']).toEqual(['system'])
   expect(config.dns['nameserver-policy']['+.corp.example']).toEqual(['system'])
   await page
     .getByLabel('内网 DNS 服务器（可留空使用系统 DNS）', { exact: true })
