@@ -5,6 +5,7 @@
 - 在修改前备份当前 w2 与生成配置，Mihomo `-t` 校验通过后只加入 `+.workers.dev` 一条 DNS policy 并重载；节点选择和其他规则保持。实测 DNS 正确，游戏入口 303，百度 200、Cloudflare API 301、ToClash Pages 200。
 - ToClash 0.3.13 lint、250/250 单元 / 界面测试、TypeScript / Vite 构建通过。桌面浅色与手机深色的默认直连及 YAML 导入浏览器回归 4/4 通过；已查看两种尺寸截图，显示 v0.3.13，页面布局正常。
 - 本地导入当前 w2 并重新导出，对照确认节点不变、`nameserver` / `direct-nameserver` 仍为 `system`、Workers DNS 与当前 w2 相同、节点 DNS 和最终 `MATCH,DIRECT` 相同。当前 v0.3.13 服务目录还会增加 4 条 Claude 官方入站 CIDR 规则，不会删除旧规则；完整 YAML 因而不逐字相同。
+- 主站和两处默认域名的实际 JS 均回读为 v0.3.13，包含 Workers 定向 DNS。正式主站的转换检查通过；首次页面刷新出现 `ERR_CONNECTION_CLOSED`，保持断言和超时复验后通过。
 - 验证范围是站点入口和登录跳转；未登录游戏或验证登录后业务。
 
 ---
