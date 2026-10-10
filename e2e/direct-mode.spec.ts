@@ -28,6 +28,8 @@ test('direct mode conversion and saved choices', async ({ page }, testInfo) => {
   expect(config.dns.nameserver).toEqual(['system'])
   expect(config.dns['direct-nameserver']).toEqual(config.dns.nameserver)
   expect(config.dns['proxy-server-nameserver']).toEqual(['system'])
+  expect(config.dns['nameserver-policy']['+.workers.dev']).toEqual(['https://1.0.0.1/dns-query#DIRECT'])
+  expect(config.dns['proxy-server-nameserver-policy']['+.workers.dev']).toBeUndefined()
   expect(config.dns['nameserver-policy']['+.corp.example']).toEqual(['system'])
   await page
     .getByLabel('内网 DNS 服务器（可留空使用系统 DNS）', { exact: true })

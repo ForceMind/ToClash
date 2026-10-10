@@ -194,6 +194,8 @@ describe('Mihomo YAML import', () => {
       ]),
     )
     const dns = config.dns as Record<string, unknown>
+    expect(dns.nameserver).toEqual(['system'])
+    expect((dns['nameserver-policy'] as Record<string, string[]>)['+.workers.dev']).toEqual(['https://1.0.0.1/dns-query#DIRECT'])
     expect(dns['fallback-filter']).toEqual({ geoip: true })
     expect(dns['fake-ip-filter']).toEqual(
       expect.arrayContaining(['+.preserved.example', '+.corp.example']),

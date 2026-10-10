@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ConversionError } from '../src/core/model/proxy'
-import { DIRECT_DNS, LOCAL_DNS, LOCAL_IP_RULES, proxyDns, SYSTEM_DNS } from '../src/core/rules/defaults'
+import { DIRECT_DNS, LOCAL_DNS, LOCAL_IP_RULES, proxyDns, SYSTEM_DNS, WORKERS_DIRECT_DNS } from '../src/core/rules/defaults'
 import { buildRulePlan } from '../src/core/rules/plan'
 import { DEFAULT_PRESETS, PRESET_CATEGORIES, RULE_PRESETS } from '../src/core/rules/presets'
 import type { CustomRouting, PresetId, RulePlan } from '../src/core/rules/types'
@@ -210,6 +210,21 @@ describe('routing and DNS precedence', () => {
 })
 
 describe('default-direct routing', () => {
+  it('keeps Workers sites direct while using a DNS exception for the whole platform', () => {
+    const plan = buildRulePlan({ mode: 'direct', presets: noPresets })
+    expect(plan.dns.nameserver).toEqual(SYSTEM_DNS)
+    expect(plan.dns['direct-nameserver']).toEqual(SYSTEM_DNS)
+    expect(plan.dns['proxy-server-nameserver']).toEqual(SYSTEM_DNS)
+    expect(policyOf(plan)['+.workers.dev']).toEqual(WORKERS_DIRECT_DNS)
+    expect((plan.dns['proxy-server-nameserver-policy'] as Record<string, string[]>)['+.workers.dev']).toBeUndefined()
+    expect(rulesOf(plan).at(-1)).toBe('MATCH,DIRECT')
+    expect(rulesOf(plan).some((entry) => entry.includes('workers.dev'))).toBe(false)
+    const company = buildRulePlan({ mode: 'direct', intranet: [{ suffix: 'workers.dev', nameservers: ['192.0.2.53'] }] })
+    expect(policyOf(company)['+.workers.dev']).toEqual(['udp://192.0.2.53:53'])
+    const forced = buildRulePlan({ mode: 'direct', proxyDomains: ['workers.dev'] })
+    expect(policyOf(forced)['+.workers.dev']).toEqual(proxyDns('FORCE_PROXY'))
+  })
+
   it('uses system public DNS while isolating intranet, node bootstrap and proxy services', () => {
     const plan = buildRulePlan({
       mode: 'direct',
@@ -243,13 +258,13 @@ describe('default-direct routing', () => {
     })
   })
 
-  it('keeps system DNS for custom-direct public domains and preserves company DNS precedence', () => {
+  it('keeps the Workers DNS exception for an explicit direct rule and preserves company DNS precedence', () => {
     const plan = buildRulePlan({
       mode: 'direct',
       directDomains: ['workers.dev', 'api.corp.example'],
       intranet: [{ suffix: 'corp.example', nameservers: ['192.0.2.53'] }],
     })
-    expect(policyOf(plan)['+.workers.dev']).toEqual(SYSTEM_DNS)
+    expect(policyOf(plan)['+.workers.dev']).toEqual(WORKERS_DIRECT_DNS)
     expect(policyOf(plan)['+.corp.example']).toEqual(['udp://192.0.2.53:53'])
     expect(policyOf(plan)['+.api.corp.example']).toBeUndefined()
     expect(policyOf(plan)['+.openai.com']).toEqual(proxyDns('FORCE_PROXY'))

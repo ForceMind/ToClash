@@ -2,6 +2,9 @@ import type { DomainRule } from './types'
 
 export const DIRECT_DNS = ['https://dns.alidns.com/dns-query', 'https://doh.pub/dns-query'] as const
 export const SYSTEM_DNS = ['system'] as const
+// Only Workers hostnames need a trusted answer on affected networks. The
+// website connection itself still follows the existing DIRECT fallback.
+export const WORKERS_DIRECT_DNS = ['https://1.0.0.1/dns-query#DIRECT'] as const
 export const LOCAL_DNS = ['rcode://refused'] as const
 export const LOCAL_DOMAINS: readonly DomainRule[] = [
   { type: 'DOMAIN-SUFFIX', value: 'localhost' },

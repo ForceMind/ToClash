@@ -1,7 +1,7 @@
 import { ConversionError } from '../model/proxy'
 import { parseRoutingTarget } from '../utils/domain'
 import { normalizeDnsServer } from '../utils/intranet'
-import { CGNAT_RULE, DIRECT_DNS, LOCAL_DNS, LOCAL_DOMAINS, LOCAL_IP_RULES, proxyDns, SYSTEM_DNS } from './defaults'
+import { CGNAT_RULE, DIRECT_DNS, LOCAL_DNS, LOCAL_DOMAINS, LOCAL_IP_RULES, proxyDns, SYSTEM_DNS, WORKERS_DIRECT_DNS } from './defaults'
 import { DEFAULT_PRESETS, DIRECT_MODE_PRESET_ADDITIONS, RULE_PRESETS } from './presets'
 import type { CustomRouting, DomainRule, IpRule, IntranetZone, RulePlan, RuleSection, RoutingWarning } from './types'
 
@@ -163,6 +163,15 @@ export function buildRulePlan(routing: CustomRouting = {}): RulePlan {
     const key = dnsKey(entry.match)
     // The first rule for an identical domain owns its DNS policy as well.
     if (!(key in policy)) policy[key] = [...entry.dns]
+  }
+  if (directMode) {
+    const workers: DomainRule = { type: 'DOMAIN-SUFFIX', value: 'workers.dev' }
+    const intranetCoversWorkers = intranetMatches.some((zone) => covers(zone, workers))
+    const directCoversWorkers = directMatches.some((match) => covers(match, workers))
+    const proxyCoversWorkers = proxy.some((target) => covers(targetMatch(target), workers))
+    if (!intranetCoversWorkers && (directCoversWorkers || !proxyCoversWorkers)) {
+      policy['+.workers.dev'] = [...WORKERS_DIRECT_DNS]
+    }
   }
   // Mihomo evaluates DNS policy blocks in order. Keep explicit domains in one
   // continuous block ahead of GeoSite, whose broad categories are fallbacks.
