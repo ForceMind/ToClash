@@ -98,6 +98,8 @@ Mihomo 遇到不支持 UDP 的代理时可能继续匹配后续规则。因此�
 
 ## DNS 的三个职责
 
+macOS 上的 Clash Verge Rev 2.5.8 在 TUN + fake-IP 模式下会写入系统占位 DNS。系统界面显示值、`system` 上游和公司 DNS 不是同一个概念；实际默认上游、配置同步及恢复步骤见 [macOS / Clash TUN 与公司 DNS](MACOS_CLASH_TUN_DNS.md)。
+
 1. `nameserver-policy`：业务域名由谁解析，应与上述分流意图一致。常规模式的普通直连使用阿里/腾讯 DoH；默认直连模式的普通公网域名使用系统 DNS。代理业务使用经相应组访问的 Cloudflare/Google DoH。
 2. `fake-ip-filter`：哪些域名应返回真实地址，不是路由规则。内网域名同时加入此列表及 `DIRECT`。
 3. `proxy-server-nameserver` / `proxy-server-nameserver-policy`：独立解析代理服务器自身地址。公共节点用默认节点 DNS，内网节点用指定内网 DNS；未配置内网 DNS 的保留本地后缀拒绝上游查询。这套策略不包含业务域名的代理组标签，避免“先连代理才能解析代理”的依赖循环。

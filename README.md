@@ -149,6 +149,7 @@ ToClash 在浏览器中完成转换，不把表单内容上传到 GitHub、Cloud
 
 - [表单填写指南](docs/FILLING_GUIDE.md)：每个输入框的格式、保存和清空操作。
 - [规则与 DNS 说明](docs/RULES.md)：规则顺序、代理组和冲突处理。
+- [macOS / Clash TUN 与公司 DNS](docs/MACOS_CLASH_TUN_DNS.md)：系统占位 DNS、实际解析上游、多份配置同步及恢复方法。
 - [开发与部署](docs/DEVELOPMENT.md)：本地启动、协议支持、GitHub Pages 和 Cloudflare Pages 上传。
 - [架构说明](docs/ARCHITECTURE.md) · [验证记录](docs/VALIDATION.md) · [更新记录](CHANGELOG.md)
 - [贡献指南](CONTRIBUTING.md) · [安全政策](SECURITY.md) · [Apache 2.0 许可](LICENSE)
