@@ -2,6 +2,11 @@
 
 这里记录 ToClash 的重要变更。
 
+## 0.3.14 — 2026-10-29
+
+- Stripe 预设补齐精确主机 `m.stripe.network` 和资源后缀 `stripecdn.com`，保留 `stripe.com`；启用后同步生成强制代理、相邻 REJECT 和代理 DNS policy。
+- Stripe 仍默认关闭；YAML 导入识别新增依赖，关闭 Stripe 会移除接管的旧规则。不扩大到整个 `stripe.network`，不增加 hCaptcha / Intercom。
+
 ## 0.3.13 — 2026-10-10
 
 - 默认直连模式仅为 `workers.dev` 后缀使用经过 DIRECT 的 Cloudflare DoH；所有当前及今后的 Worker 子域名沿用现有 `MATCH,DIRECT` 连接。

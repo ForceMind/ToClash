@@ -11,6 +11,23 @@ const legacyPresets = RULE_PRESETS.filter(({ defaultEnabled }) => defaultEnabled
 const noPresets = Object.fromEntries(RULE_PRESETS.map(({ id }) => [id, false])) as Record<PresetId, boolean>
 
 describe('service rule presets', () => {
+  it.each(['standard', 'direct'] as const)('includes Stripe dependencies only when enabled in %s mode', (mode) => {
+    const enabled = buildRulePlan({ mode, presets: { stripe: true } })
+    const disabled = buildRulePlan({ mode, presets: { stripe: false } })
+    for (const [type, value] of [['DOMAIN-SUFFIX', 'stripe.com'], ['DOMAIN-SUFFIX', 'stripecdn.com'], ['DOMAIN', 'm.stripe.network']] as const) {
+      const match = `${type},${value}`
+      const index = rulesOf(enabled).indexOf(`${match},FORCE_PROXY`)
+      expect(index).toBeGreaterThanOrEqual(0)
+      expect(rulesOf(enabled)[index + 1]).toBe(`${match},REJECT`)
+      const key = type === 'DOMAIN' ? value : `+.${value}`
+      expect(policyOf(enabled)[key]).toEqual(proxyDns('FORCE_PROXY'))
+      expect(rulesOf(disabled)).not.toContain(`${match},FORCE_PROXY`)
+      expect(policyOf(disabled)[key]).toBeUndefined()
+    }
+    expect(rulesOf(enabled)).not.toContain('DOMAIN-SUFFIX,stripe.network,FORCE_PROXY')
+    expect(rulesOf(enabled)).not.toContain('DOMAIN-SUFFIX,hcaptcha.com,FORCE_PROXY')
+  })
+
   it.each(['standard', 'direct'] as const)('includes Claude shortlinks and only published inbound CIDRs in %s mode', (mode) => {
     const plan = buildRulePlan({ mode })
     const rules = rulesOf(plan)

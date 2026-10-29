@@ -80,7 +80,7 @@ export const RULE_PRESETS: readonly RulePreset[] = [
   { id: 'spaceship', category: 'developer', nameZh: 'Spaceship', nameEn: 'Spaceship', defaultEnabled: false, rules: suffixes('spaceship.com', 'spaceship-cdn.com') },
   { id: 'amazon', category: 'commerce', nameZh: 'Amazon 购物', nameEn: 'Amazon Shopping', defaultEnabled: false, rules: suffixes('amazon.com') },
   { id: 'paypal', category: 'commerce', nameZh: 'PayPal', nameEn: 'PayPal', defaultEnabled: false, rules: suffixes('paypal.com', 'paypalobjects.com') },
-  { id: 'stripe', category: 'commerce', nameZh: 'Stripe', nameEn: 'Stripe', defaultEnabled: false, rules: suffixes('stripe.com') },
+  { id: 'stripe', category: 'commerce', nameZh: 'Stripe', nameEn: 'Stripe', defaultEnabled: false, rules: [...suffixes('stripe.com', 'stripecdn.com'), { type: 'DOMAIN', value: 'm.stripe.network' }] },
   { id: 'steam', category: 'gaming', nameZh: 'Steam', nameEn: 'Steam', defaultEnabled: false, rules: suffixes('steampowered.com', 'steamcommunity.com', 'steamstatic.com', 'steamcontent.com', 'steam-chat.com', 'steamgames.com') },
   { id: 'epic', category: 'gaming', nameZh: 'Epic Games', nameEn: 'Epic Games', defaultEnabled: false, rules: suffixes('epicgames.com', 'epicgames.dev', 'unrealengine.com', 'fortnite.com') },
   { id: 'roblox', category: 'gaming', nameZh: 'Roblox', nameEn: 'Roblox', defaultEnabled: false, rules: suffixes('roblox.com', 'rbxcdn.com') },

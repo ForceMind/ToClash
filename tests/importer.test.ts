@@ -59,6 +59,17 @@ rules:
 `
 
 describe('Mihomo YAML import', () => {
+  it('recovers Stripe from its dependency and removes owned dependency rules when disabled', () => {
+    const imported = convertInput(profile.replace('  - MATCH,DIRECT', '  - DOMAIN,m.stripe.network,FORCE_PROXY\n  - DOMAIN,m.stripe.network,REJECT\n  - DOMAIN-SUFFIX,stripecdn.com,FORCE_PROXY\n  - DOMAIN-SUFFIX,stripecdn.com,REJECT\n  - MATCH,DIRECT'))
+    expect(imported.recoveredRouting?.presets.stripe).toBe(true)
+    const enabled = parse(serializeMihomo(imported.nodes, 'full', { mode: 'direct', presets: { stripe: true } }, imported.imported))
+    expect(enabled.rules).toContain('DOMAIN,m.stripe.network,FORCE_PROXY')
+    expect(enabled.dns['nameserver-policy']['m.stripe.network']).toHaveLength(2)
+    const disabled = parse(serializeMihomo(imported.nodes, 'full', { mode: 'direct', presets: { stripe: false } }, imported.imported))
+    expect(disabled.rules.some((rule: string) => rule.includes('stripe'))).toBe(false)
+    expect(disabled.dns['nameserver-policy']['m.stripe.network']).toBeUndefined()
+  })
+
   it('preserves system public DNS on re-export without changing nodes or intranet DNS', () => {
     const input = profile.replace('  fallback-filter:', '  nameserver: [system]\n  direct-nameserver: [system]\n  proxy-server-nameserver: [system]\n  fallback-filter:')
     const result = convertInput(input)

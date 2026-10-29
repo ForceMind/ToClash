@@ -42,7 +42,7 @@ Meta / Meta AI / Quest 开关覆盖 `meta.com`、`meta.ai` 和 `oculus.com`。Fa
 | Figma | `figma.com`、`figmaweave.com` | [Figma 网络设置](https://help.figma.com/hc/en-us/articles/19424714305943-Adjust-your-network-settings)；不包含承载用户发布站点的 `figma.site` |
 | Adobe | `adobe.com`、`adobe.io`、`adobelogin.com`、`adobe-identity.com`、`adobejanus.com`、`adobecc.com`、`adobeccstatic.com` | [Adobe 网络端点](https://helpx.adobe.com/business/enterprise/manage-services/configure-services/network-endpoints.html)的常用自有域名子集 |
 | PayPal | `paypal.com`、`paypalobjects.com` | [PayPal 开发者文档](https://developer.paypal.com/platforms/checkout/fastlane/getstarted/) |
-| Stripe | `stripe.com` | [Stripe 支付文档](https://docs.stripe.com/payments/finalize-payments-on-the-server)含 `js.stripe.com`；不扩到第三方商户域名 |
+| Stripe | `stripe.com`、`stripecdn.com`、精确主机 `m.stripe.network` | [Stripe 官方域名清单](https://docs.stripe.com/ips)包含主站、JS、遥测与资源依赖；v0.3.14 补齐 CDN 和 network 主机，不扩到整个 `stripe.network` 或第三方商户域名，hCaptcha 不随此开关添加 |
 | Pinterest | `pinterest.com`、`pinimg.com` | [Pinterest 帮助](https://help.pinterest.com/en/article/discover-ideas-on-pinterest)与[官方图片数据集](https://github.com/pinterest/pinpoint-dataset) |
 | Snapchat | `snapchat.com`、`snap.com`、`sc-cdn.net` | [Snap 网页分享](https://developers.snap.com/api/snapchat-for-web/social-plugins/share-link-to-snapchat)与[官方 CDN 文档](https://developers.snap.com/camera-kit/integrate-sdk/web/web-configuration) |
 | Roblox | `roblox.com`、`rbxcdn.com` | [Roblox 网络说明](https://en.help.roblox.com/hc/en-us/articles/115005744663-Troubleshooting-Education-Networks)；原生游戏还会使用动态 IP 和 UDP |
