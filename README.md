@@ -6,7 +6,7 @@
 
 ToClash 不提供代理节点，也不会替你连接 VPN。请先准备可用的代理链接，以及支持 Mihomo 配置的客户端。
 
-当前版本：**v0.3.14**，Stripe 预设补齐 `m.stripe.network` 与 `stripecdn.com`；启用 Stripe 后与 `stripe.com` 一起强制代理，默认开关及现有内网 / Workers DNS 设置不变。变更见[变更日志](CHANGELOG.md)。
+当前正式版本：**v0.3.14**，Stripe 预设补齐 `m.stripe.network` 与 `stripecdn.com`；启用 Stripe 后与 `stripe.com` 一起强制代理，默认开关及现有内网 / Workers DNS 设置不变。发布及验证见[v0.3.14 发布记录](docs/RELEASE_v0.3.14.md)。
 
 新增服务可在“服务规则预设”中搜索并开启。新开关默认关闭，开启后其域名走 `FORCE_PROXY`；具体域名和共用基础设施的边界见[服务目录](docs/SERVICE_CATALOG.md)。
 
