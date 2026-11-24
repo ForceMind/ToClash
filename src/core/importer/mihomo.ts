@@ -415,6 +415,7 @@ export function convertInput(input: string): SourceConversionResult {
 function mergeDns(
   original: unknown,
   generated: Record<string, unknown>,
+  ownedPolicyKeys: Set<string>,
 ): Record<string, unknown> {
   const base = isRecord(original) ? original : {}
   const result: Record<string, unknown> = { ...base, ...generated }
@@ -430,7 +431,12 @@ function mergeDns(
   ]) {
     const before = isRecord(base[key]) ? base[key] : {}
     const updates = isRecord(generated[key]) ? generated[key] : {}
-    result[key] = { ...before, ...updates }
+    // Rebuild business DNS owned by imported proxy rules, including removal
+    // when their preset is disabled. Bootstrap and unowned DNS stay intact.
+    const preserved = key === 'nameserver-policy'
+      ? Object.fromEntries(Object.entries(before).filter(([domain]) => !ownedPolicyKeys.has(domain)))
+      : before
+    result[key] = { ...preserved, ...updates }
   }
   return result
 }
@@ -504,7 +510,16 @@ export function mergeImportedMihomoConfig(
       : []),
     ...(fallback ? [fallback] : []),
   ]
-  const dns = mergeDns(imported.config.dns, plan.dns)
+  const managedKeys = new Set(imported.managedRuleKeys)
+  const ownedPolicyKeys = new Set<string>()
+  for (const value of stringArray(imported.config.rules) ?? []) {
+    const parsed = parseRule(value)
+    if (parsed && isDomainRule(parsed) && managedKeys.has(ruleKey(parsed)) &&
+      (parsed.policy === 'FORCE_PROXY' || parsed.policy === 'PROXY')) {
+      ownedPolicyKeys.add(parsed.type === 'DOMAIN' ? parsed.value : `+.${parsed.value}`)
+    }
+  }
+  const dns = mergeDns(imported.config.dns, plan.dns, ownedPolicyKeys)
   return {
     config: {
       ...imported.config,

@@ -81,6 +81,8 @@ describe('Mihomo YAML import', () => {
       expect(disabled.dns['nameserver-policy'][`+.${domain}`]).toBeUndefined()
     }
     expect(enabled.proxies).toEqual(imported.imported?.proxies)
+    expect(disabled.dns['nameserver-policy']['+.preserved.example']).toEqual(['system'])
+    expect(disabled.dns['nameserver-policy']['+.corp.example']).toEqual(['udp://192.0.2.53:53'])
     expect(enabled.tun).toEqual({ enable: true, stack: 'system' })
     expect(enabled.rules.at(-1)).toBe(mode === 'direct' ? 'MATCH,DIRECT' : 'MATCH,PROXY')
     expect(enabled.dns['nameserver-policy']['+.153.61.224.0/22']).toBeUndefined()
