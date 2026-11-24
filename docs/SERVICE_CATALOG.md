@@ -1,6 +1,6 @@
 # 海外服务预设目录
 
-v0.3.10 有 41 个独立服务开关、7 个分类。域名及服务目的 IP 规则的唯一实现来源是 `src/core/rules/presets.ts`；本页说明选择依据、默认值和边界，不替代实际运行验证。
+v0.3.15 有 41 个独立服务开关、7 个分类。域名及服务目的 IP 规则的唯一实现来源是 `src/core/rules/presets.ts`；本页说明选择依据、默认值和边界，不替代实际运行验证。
 
 ## 默认值与分流
 
@@ -20,7 +20,7 @@ Codex / OpenAI、Claude / Anthropic、开发者服务 / GitHub、Google / YouTub
 
 Google Gemini 归入既有 Google / YouTube 开关，不另外创建重复开关。
 
-### Claude 域名与目的 IP（v0.3.15 源码，未部署）
+### Claude 域名与目的 IP（v0.3.15）
 
 v0.3.15 根据 [Claude Desktop 网络要求](https://code.claude.com/docs/en/desktop#network-access-requirements)补充 `claude.app`、`claudemcpcontent.com`，并在两种模式均覆盖 `claudeusercontent.com` 后缀及子域。保留 bridge 及共享主机精确项，不扩到整个共享 CDN。
 

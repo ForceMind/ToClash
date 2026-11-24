@@ -2,7 +2,7 @@
 
 这里记录 ToClash 的重要变更。
 
-## 0.3.15 — 2026-11-24（生成器更新，未部署）
+## 0.3.15 — 2026-11-24
 
 - Claude 增加 `claude.app`、`claudemcpcontent.com`，两种模式均覆盖 `claudeusercontent.com` 及子域；保留原有专用域名和共享主机精确项。
 - 补充入站目的范围 `153.61.224.0/22`，保留 `no-resolve`、FORCE_PROXY / REJECT 与域名代理 DoH 联动；扩展两种模式、开关及旧 YAML 再生成回归。

@@ -1,14 +1,12 @@
 # ToClash
 
-源码更新 v0.3.15（未部署）：Claude 域名及入站 IP 补齐，范围与验证见 [Claude 预设更新记录](docs/CLAUDE_PRESET_UPDATE.md)。下方正式版本描述仍指现有线上发布。
-
 把代理链接或已有 Clash / Mihomo YAML 转换、补全为可编辑的配置文件。打开网页、粘贴内容或导入 YAML、调整分流、下载配置，再导入你的代理客户端即可。
 
 **[打开网站（Cloudflare Pages）](https://toclash.xincreates.com/)** · [GitHub Pages 备用入口](https://forcemind.github.io/ToClash/)
 
 ToClash 不提供代理节点，也不会替你连接 VPN。请先准备可用的代理链接，以及支持 Mihomo 配置的客户端。
 
-当前正式版本：**v0.3.14**，Stripe 预设补齐 `m.stripe.network` 与 `stripecdn.com`；启用 Stripe 后与 `stripe.com` 一起强制代理，默认开关及现有内网 / Workers DNS 设置不变。发布及验证见[v0.3.14 发布记录](docs/RELEASE_v0.3.14.md)。
+当前正式版本：**v0.3.15**，Claude 预设补齐 `claude.app`、`claudemcpcontent.com`，两种模式均覆盖 `claudeusercontent.com` 及子域，并新增官方入站网段 `153.61.224.0/22`。同时修复已有 YAML 再导入后关闭预设残留业务 DNS 的问题。默认开关及现有内网 / Workers DNS 设置不变，发布与验证见[Claude 更新记录](docs/CLAUDE_PRESET_UPDATE.md)。
 
 新增服务可在“服务规则预设”中搜索并开启。新开关默认关闭，开启后其域名走 `FORCE_PROXY`；具体域名和共用基础设施的边界见[服务目录](docs/SERVICE_CATALOG.md)。
 
