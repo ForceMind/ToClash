@@ -20,13 +20,17 @@ Codex / OpenAI、Claude / Anthropic、开发者服务 / GitHub、Google / YouTub
 
 Google Gemini 归入既有 Google / YouTube 开关，不另外创建重复开关。
 
-### Claude 短链接与目的 IP（v0.3.10）
+### Claude 域名与目的 IP（v0.3.15 源码，未部署）
+
+v0.3.15 根据 [Claude Desktop 网络要求](https://code.claude.com/docs/en/desktop#network-access-requirements)补充 `claude.app`、`claudemcpcontent.com`，并在两种模式均覆盖 `claudeusercontent.com` 后缀及子域。保留 bridge 及共享主机精确项，不扩到整个共享 CDN。
 
 Claude 默认开启的预设新增 `clau.de` 后缀，包含其子域名；[Anthropic 官方插件目录](https://github.com/anthropics/claude-plugins-community)使用 `clau.de/plugin-directory-submission` 作为提交入口。域名规则和代理 DNS 随 Claude 开关同步启停。
 
-[Anthropic 官方 IP 说明](https://platform.claude.com/docs/en/api/ip-addresses)列出的 API / Console 入站目的地址为 `160.79.104.0/23`（IPv4）和 `2607:6bc0::/48`（IPv6），本次全部纳入 Claude 开关：生成 `FORCE_PROXY` 与相邻 `REJECT`，均带 `no-resolve`，不把 CIDR 写入 DNS policy。它们只补充已知目的 IP 的匹配，不主动解析域名，也不保证覆盖 Claude 网页、全部 CDN 或 AWS 托管端点。生成配置仍默认禁用 IPv6；保留 IPv6 规则供客户端启用 IPv6 后使用，不自动更改客户端网络设置。
+[Anthropic 官方 IP 说明](https://platform.claude.com/docs/en/api/ip-addresses#inbound-ip-addresses)列出的 API / Console 入站目的地址为 `160.79.104.0/23`、`153.61.224.0/22`（IPv4）和 `2607:6bc0::/48`（IPv6），均纳入 Claude 开关：生成 `FORCE_PROXY` 与相邻 `REJECT`，均带 `no-resolve`，不把 CIDR 写入 DNS policy。它们只补充已知目的 IP 的匹配，不主动解析域名，也不保证覆盖 Claude 网页、全部 CDN 或云厂商托管端点。生成配置仍默认禁用 IPv6；保留 IPv6 规则供客户端启用 IPv6 后使用，不自动更改客户端网络设置。
 
-官方的 `160.79.104.0/21` 是服务器调用 MCP 等工具时的出口源地址，不作为访问 Claude 的目的范围加入。五个已退役的 `34.162.*` 地址，以及整个 Cloudflare / AWS / Google 等共享云 IP 段也不加入。依据核对日期：2026-10-08；不订阅或自动扩充 IP 列表。导入已有 YAML 后关闭 Claude，会移除这些由 ToClash 接管的规则，其他未接管 CIDR 保留。显式直连 IP 仍先于服务范围匹配。
+官方的 `160.79.104.0/21`、`153.61.208.0/20` 是服务器调用 MCP 等工具时的出口源地址，不作为访问 Claude 的目的范围加入。五个已退役的 `34.162.*` 地址，以及整个 Cloudflare / AWS / Google 等共享云 IP 段也不加入。依据核对日期：2026-11-24；不订阅或自动扩充 IP 列表。导入已有 YAML 后关闭 Claude，会移除这些由 ToClash 接管的规则，其他未接管 CIDR 保留。显式直连 IP 仍先于服务范围匹配。
+
+规则只覆盖已知目的地，不是进程级防泄漏规则。未知域名或 IP 在常规模式由 `MATCH,PROXY` 及其选择决定出口，在默认直连模式由 `MATCH,DIRECT` 直连；关闭 Claude 后仍受其他预设和用户规则影响。
 
 v0.3.9 新增 Spaceship 开关：`spaceship.com` 后缀包含 `www.spaceship.com` 及账号、控制台子域；`spaceship-cdn.com` 为[官网](https://www.spaceship.com/)使用的静态资源域名。默认关闭，开启后两者的规则与 DNS 同时走 `FORCE_PROXY`。
 

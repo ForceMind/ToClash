@@ -27,15 +27,17 @@ export const RULE_PRESETS: readonly RulePreset[] = [
   {
     id: 'claude', category: 'ai', nameZh: 'Claude / Anthropic', nameEn: 'Claude / Anthropic', defaultEnabled: true,
     rules: [
-      ...suffixes('anthropic.com', 'claude.ai', 'claude.com', 'clau.de', 'anthropic-static.com'),
+      ...suffixes('anthropic.com', 'claude.ai', 'claude.com', 'clau.de', 'anthropic-static.com', 'claude.app', 'claudemcpcontent.com'),
       { type: 'DOMAIN', value: 'bridge.claudeusercontent.com' },
+      ...suffixes('claudeusercontent.com'),
       { type: 'DOMAIN', value: 'storage.googleapis.com' },
       { type: 'DOMAIN', value: 'raw.githubusercontent.com' },
     ],
-    // Anthropic-published API/Console inbound destinations, checked 2026-10-08.
-    // The broader outbound /21 is a source range for tools, not our destination.
+    // Anthropic-published API/Console inbound destinations, checked 2026-11-24.
+    // Outbound tool source ranges are deliberately not destination rules.
     ipRules: [
       { type: 'IP-CIDR', value: '160.79.104.0/23' },
+      { type: 'IP-CIDR', value: '153.61.224.0/22' },
       { type: 'IP-CIDR6', value: '2607:6bc0::/48' },
     ],
   },
@@ -96,7 +98,6 @@ export const DEFAULT_PRESETS: Record<PresetId, boolean> = Object.fromEntries(
  */
 export const DIRECT_MODE_PRESET_ADDITIONS: Readonly<Partial<Record<PresetId, readonly DomainRule[]>>> = {
   openai: [{ type: 'DOMAIN', value: 'cdn.openaimerge.com' }],
-  claude: suffixes('claudeusercontent.com'),
   google: suffixes(
     'google.com.hk', 'google.com.tw', 'google.com.sg', 'google.co.jp', 'google.co.uk',
     'googleusercontent.com', 'gvt2.com', 'gmail.com', 'googlemail.com',

@@ -59,6 +59,33 @@ rules:
 `
 
 describe('Mihomo YAML import', () => {
+  it.each(['standard', 'direct'] as const)('upgrades legacy Claude YAML and removes the expanded preset on disable in %s mode', (mode) => {
+    const legacy = profile.replace('  - MATCH,DIRECT', '  - DOMAIN,bridge.claudeusercontent.com,FORCE_PROXY\n  - DOMAIN,bridge.claudeusercontent.com,REJECT\n  - MATCH,DIRECT')
+    const imported = convertInput(legacy)
+    expect(imported.recoveredRouting?.presets.claude).toBe(true)
+    const domains = ['claude.app', 'claudemcpcontent.com', 'claudeusercontent.com']
+    const matches = [...domains.map((domain) => `DOMAIN-SUFFIX,${domain}`), 'IP-CIDR,153.61.224.0/22']
+    const enabled = parse(serializeMihomo(imported.nodes, 'full', { mode, presets: imported.recoveredRouting!.presets }, imported.imported))
+    const roundTrip = convertInput(serializeMihomo(imported.nodes, 'full', { mode, presets: imported.recoveredRouting!.presets }, imported.imported))
+    expect(roundTrip.recoveredRouting?.presets.claude).toBe(true)
+    const disabled = parse(serializeMihomo(roundTrip.nodes, 'full', { mode, presets: { ...roundTrip.recoveredRouting!.presets, claude: false } }, roundTrip.imported))
+    for (const match of matches) {
+      const suffix = match.startsWith('IP-') ? ',no-resolve' : ''
+      const index = enabled.rules.indexOf(`${match},FORCE_PROXY${suffix}`)
+      expect(index).toBeGreaterThanOrEqual(0)
+      expect(enabled.rules[index + 1]).toBe(`${match},REJECT${suffix}`)
+      expect(disabled.rules.some((rule: string) => rule.startsWith(`${match},`))).toBe(false)
+    }
+    for (const domain of domains) {
+      expect(enabled.dns['nameserver-policy'][`+.${domain}`]).toEqual(['https://1.1.1.1/dns-query#FORCE_PROXY', 'https://8.8.8.8/dns-query#FORCE_PROXY'])
+      expect(disabled.dns['nameserver-policy'][`+.${domain}`]).toBeUndefined()
+    }
+    expect(enabled.proxies).toEqual(imported.imported?.proxies)
+    expect(enabled.tun).toEqual({ enable: true, stack: 'system' })
+    expect(enabled.rules.at(-1)).toBe(mode === 'direct' ? 'MATCH,DIRECT' : 'MATCH,PROXY')
+    expect(enabled.dns['nameserver-policy']['+.153.61.224.0/22']).toBeUndefined()
+  })
+
   it('recovers Stripe from its dependency and removes owned dependency rules when disabled', () => {
     const imported = convertInput(profile.replace('  - MATCH,DIRECT', '  - DOMAIN,m.stripe.network,FORCE_PROXY\n  - DOMAIN,m.stripe.network,REJECT\n  - DOMAIN-SUFFIX,stripecdn.com,FORCE_PROXY\n  - DOMAIN-SUFFIX,stripecdn.com,REJECT\n  - MATCH,DIRECT'))
     expect(imported.recoveredRouting?.presets.stripe).toBe(true)

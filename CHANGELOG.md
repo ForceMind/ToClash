@@ -2,6 +2,12 @@
 
 这里记录 ToClash 的重要变更。
 
+## 0.3.15 — 2026-11-24（生成器更新，未部署）
+
+- Claude 增加 `claude.app`、`claudemcpcontent.com`，两种模式均覆盖 `claudeusercontent.com` 及子域；保留原有专用域名和共享主机精确项。
+- 补充入站目的范围 `153.61.224.0/22`，保留 `no-resolve`、FORCE_PROXY / REJECT 与域名代理 DoH 联动；扩展两种模式、开关及旧 YAML 再生成回归。
+- 未知域名或 IP 仍由该模式兜底规则决定出口。进度、验收和接手见 [Claude 更新记录](docs/CLAUDE_PRESET_UPDATE.md)。
+
 ## 0.3.14 — 2026-10-29
 
 - Stripe 预设补齐精确主机 `m.stripe.network` 和资源后缀 `stripecdn.com`，保留 `stripe.com`；启用后同步生成强制代理、相邻 REJECT 和代理 DNS policy。

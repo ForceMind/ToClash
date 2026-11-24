@@ -141,7 +141,7 @@ v0.3.3 增加分类、搜索和独立开关，完整目录、来源和共享域�
 预设不是远程规则订阅，不会自动更新；域名清单集中在 `src/core/rules/presets.ts`，修改须附来源和测试。
 
 - OpenAI：API、ChatGPT、静态资源、认证相关自有域名，以及精确匹配的 `workos.imgix.net`、`challenges.cloudflare.com`。
-- Claude：Anthropic/Claude 自有服务域名（含 `clau.de`）及精确的浏览器 WebSocket bridge、旧安装包存储和 release notes 主机；另补充官方 API / Console 入站目的 IP `160.79.104.0/23`、`2607:6bc0::/48`，随开关启停。
+- Claude：Anthropic/Claude 自有服务域名（含 `clau.de`、`claude.app`、`claudemcpcontent.com`），两种模式均覆盖 `claudeusercontent.com` 后缀及子域；保留精确的浏览器 WebSocket bridge、旧安装包存储和 release notes 主机。官方 API / Console 入站目的 IP 为 `160.79.104.0/23`、`153.61.224.0/22`、`2607:6bc0::/48`，随开关启停。仅覆盖已知目的地，未知项仍由该模式兜底决定出口。
 - 开发者：GitHub 网站、资源和 Pages 域名。
 - Google / YouTube：主站、API、静态资源与常见视频资源域名。
 

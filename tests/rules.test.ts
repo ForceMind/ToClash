@@ -33,14 +33,30 @@ describe('service rule presets', () => {
     const rules = rulesOf(plan)
     expect(rules).toContain('DOMAIN-SUFFIX,clau.de,FORCE_PROXY')
     expect(policyOf(plan)['+.clau.de']).toEqual(proxyDns('FORCE_PROXY'))
-    for (const match of ['IP-CIDR,160.79.104.0/23', 'IP-CIDR6,2607:6bc0::/48']) {
+    for (const domain of ['claude.app', 'claudemcpcontent.com', 'claudeusercontent.com']) {
+      const match = `DOMAIN-SUFFIX,${domain}`
+      const index = rules.indexOf(`${match},FORCE_PROXY`)
+      expect(index).toBeGreaterThanOrEqual(0)
+      expect(rules[index + 1]).toBe(`${match},REJECT`)
+      expect(policyOf(plan)[`+.${domain}`]).toEqual(proxyDns('FORCE_PROXY'))
+      const disabled = buildRulePlan({ mode, presets: { claude: false } })
+      expect(rulesOf(disabled).some((rule) => rule.startsWith(`${match},`))).toBe(false)
+      expect(policyOf(disabled)[`+.${domain}`]).toBeUndefined()
+    }
+    for (const match of ['IP-CIDR,160.79.104.0/23', 'IP-CIDR,153.61.224.0/22', 'IP-CIDR6,2607:6bc0::/48']) {
       const index = rules.indexOf(`${match},FORCE_PROXY,no-resolve`)
       expect(index).toBeGreaterThanOrEqual(0)
       expect(rules[index + 1]).toBe(`${match},REJECT,no-resolve`)
       expect(rulesOf(buildRulePlan({ mode, presets: { claude: false } }))).not.toContain(`${match},FORCE_PROXY,no-resolve`)
+      expect(rulesOf(buildRulePlan({ mode, presets: { claude: false } }))).not.toContain(`${match},REJECT,no-resolve`)
     }
-    expect(Object.keys(policyOf(plan)).some((key) => key.includes('160.79.104') || key.includes('2607:6bc0'))).toBe(false)
-    expect(rules.some((rule) => rule.includes('160.79.104.0/21') || rule.includes('34.162.46.92'))).toBe(false)
+    expect(Object.keys(policyOf(plan)).some((key) => key.includes('160.79.104') || key.includes('153.61.224') || key.includes('2607:6bc0'))).toBe(false)
+    expect(rules.some((rule) => rule.includes('160.79.104.0/21') || rule.includes('153.61.208.0/20') || rule.includes('34.162.46.92'))).toBe(false)
+    expect(rules).toContain('DOMAIN,bridge.claudeusercontent.com,FORCE_PROXY')
+    expect(rules).toContain('DOMAIN,storage.googleapis.com,FORCE_PROXY')
+    expect(rules).toContain('DOMAIN,raw.githubusercontent.com,FORCE_PROXY')
+    expect(rules).not.toContain('DOMAIN-SUFFIX,storage.googleapis.com,FORCE_PROXY')
+    expect(rules.at(-1)).toBe(mode === 'direct' ? 'MATCH,DIRECT' : 'MATCH,PROXY')
     const disabled = buildRulePlan({ mode, presets: { claude: false } })
     expect(rulesOf(disabled)).not.toContain('DOMAIN-SUFFIX,clau.de,FORCE_PROXY')
     expect(policyOf(disabled)['+.clau.de']).toBeUndefined()

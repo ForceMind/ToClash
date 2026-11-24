@@ -1,5 +1,7 @@
 # ToClash
 
+源码更新 v0.3.15（未部署）：Claude 域名及入站 IP 补齐，范围与验证见 [Claude 预设更新记录](docs/CLAUDE_PRESET_UPDATE.md)。下方正式版本描述仍指现有线上发布。
+
 把代理链接或已有 Clash / Mihomo YAML 转换、补全为可编辑的配置文件。打开网页、粘贴内容或导入 YAML、调整分流、下载配置，再导入你的代理客户端即可。
 
 **[打开网站（Cloudflare Pages）](https://toclash.xincreates.com/)** · [GitHub Pages 备用入口](https://forcemind.github.io/ToClash/)
