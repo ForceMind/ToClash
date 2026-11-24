@@ -6,11 +6,13 @@
 
 1. 核对 v0.3.14、当前差异和官方资料：完成。原有内容后缀只在默认直连模式覆盖；官方公布三个入站目的网段。
 2. 更新目录及两种模式、开关、旧 YAML 再生成回归：完成。版本 v0.3.15；保留 bridge 和共享主机精确项，内容后缀移入公共 Claude 目录。
-3. 验证、更新结果、提交同步：进行中。本机 npm lint 因 ESLint 入口缺失退出 1；复用工作分支既有 CI，避免 main 推送自动部署。首个功能提交 `2986137` 的 CI 45437943250 发现旧 YAML 再导入后关闭 Claude 残留业务 DNS，正在修复接管规则的 DNS 清理；未接管和 bootstrap DNS 保留。通过后停止。
+3. 验证、更新结果、提交同步：完成。功能修复提交 `a6381550a95ea23da6c9bafa5ee1c6d08fd114e2` 已推送到 `codex/claude-preset-v0315`；[CI 45438599080](https://github.com/ForceMind/ToClash/actions/runs/45438599080) 全部成功：lint、typecheck、单元测试、覆盖率、构建及远端浏览器 10/10。核心行覆盖率 97.75%。未合并 main，未部署。
+
+初次功能提交 `2986137` 的 CI 45437943250 在新回归中发现：旧 YAML 再导入后关闭 Claude 残留业务 DNS。已修复为重建接管代理域名规则对应的业务 DNS，原断言保持；未接管和 bootstrap DNS 保留。本机 npm lint 因 ESLint 入口缺失退出 1，随后复用远端 CI；本机未安装依赖或启动浏览器。
 
 ## 接手
 
-入口为 `src/core/rules/presets.ts`；验证在 `tests/rules.test.ts` 和 `tests/importer.test.ts`。下一步运行 lint、类型检查、测试和构建，并记录实际结果。现有未跟踪本地 DNS 文档不属于本批次。
+入口为 `src/core/rules/presets.ts`；验证在 `tests/rules.test.ts` 和 `tests/importer.test.ts`。DNS 合并修复在 `src/core/importer/mihomo.ts`。源码 v0.3.15 已具备本批次规则；main 与线上仍为原版本。后续合并、部署或客户端更新须另行授权。本批次验收已完成，无剩余实施事项；真实节点、DNS 出口及 Claude 业务连通性未验证。现有未跟踪本地 DNS 文档未修改。
 
 ## 项目记忆
 
